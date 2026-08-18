@@ -14,49 +14,60 @@ import {
   CheckCircle2,
   Layers,
   FileCode2,
-  DollarSign
+  DollarSign,
+  Play,
+  Cpu,
+  Palette,
+  ShieldCheck,
+  Zap,
+  RotateCcw
 } from 'lucide-react';
 
-export const DashboardView: React.FC<{ onOpenWhyModal: (qId: string) => void }> = () => {
-  const { project, stats, setActiveTab, setActiveMode, resolveRedFlag } = useProject();
+interface DashboardViewProps {
+  onOpenWhyModal?: (qId: string) => void;
+  onNavigateToHub?: (hub: any, tab: any) => void;
+}
+
+export const DashboardView: React.FC<DashboardViewProps> = () => {
+  const { project, stats, setActiveTab, switchProject, resolveRedFlag } = useProject();
 
   const unresolvedFlags = project.redFlags.filter(f => !f.resolved);
 
   return (
     <div className="space-y-8 animate-view-in pb-12">
-      {/* Red Flags Action Banner (if any unresolved) */}
+      {/* High-Priority Red Flag Banner */}
       {unresolvedFlags.length > 0 && (
-        <div className="p-5 rounded-2xl bg-rose-500/10 border border-rose-500/30 backdrop-blur-md">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-start gap-3">
-              <div className="p-2 rounded-xl bg-rose-500/20 text-rose-400 mt-0.5">
+        <div className="p-5 rounded-2xl bg-rose-500/10 border border-rose-500/30 backdrop-blur-md relative overflow-hidden">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+            <div className="flex items-start gap-3.5">
+              <div className="p-2.5 rounded-xl bg-rose-500/20 text-rose-400 mt-0.5 flex-shrink-0">
                 <Flame className="w-5 h-5 animate-pulse" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
                   <h3 className="text-base font-bold text-white">
-                    {unresolvedFlags.length} Critical Architectural Red Flag{unresolvedFlags.length > 1 ? 's' : ''} Detected
+                    {unresolvedFlags.length} Critical Blocker{unresolvedFlags.length > 1 ? 's' : ''} Require Resolution
                   </h3>
-                  <span className="px-2 py-0.2 text-[10px] font-mono font-bold rounded bg-rose-500/30 text-rose-200">
-                    STAGE 31 RED FLAG ENGINE
+                  <span className="px-2 py-0.5 text-[9px] font-mono font-bold rounded bg-rose-500/30 text-rose-200 uppercase">
+                    Stage 31 Red Flag Engine
                   </span>
                 </div>
                 <p className="text-xs text-rose-200/90 mt-1 max-w-2xl">
-                  Level 7 rules require all critical blockers to be resolved before an executable Build Contract can be generated for AI coding agents.
+                  Autonomous AI code generation is paused until safety conflicts are resolved.
                 </p>
                 <div className="mt-3 space-y-2">
                   {unresolvedFlags.map((flag) => (
-                    <div key={flag.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 rounded-lg bg-slate-900/80 border border-rose-500/20 text-xs">
+                    <div key={flag.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-xl bg-slate-950/80 border border-rose-500/20 text-xs">
                       <div>
                         <span className="font-bold text-rose-300 font-mono mr-2">[{flag.severity}]</span>
-                        <span className="text-slate-200 font-semibold">{flag.title}:</span>
-                        <span className="text-slate-400 ml-1">{flag.actionRequired}</span>
+                        <strong className="text-white">{flag.title}:</strong>
+                        <span className="text-slate-300 ml-1">{flag.actionRequired}</span>
                       </div>
                       <button
                         onClick={() => resolveRedFlag(flag.id)}
-                        className="self-end sm:self-auto px-2.5 py-1 rounded bg-rose-500/20 hover:bg-rose-500/40 text-rose-200 font-semibold text-[11px] transition-colors"
+                        className="self-end sm:self-auto px-3 py-1.5 rounded-lg bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs transition-colors shadow-sm"
                       >
-                        Apply Resolution
+                        Resolve Now
                       </button>
                     </div>
                   ))}
@@ -65,63 +76,105 @@ export const DashboardView: React.FC<{ onOpenWhyModal: (qId: string) => void }> 
             </div>
             <button
               onClick={() => setActiveTab('risks')}
-              className="btn-secondary text-xs px-3 py-1.5 flex-shrink-0 hidden sm:flex"
+              className="btn-secondary text-xs px-3.5 py-2 flex-shrink-0 hidden lg:flex"
             >
-              View All Risks
+              Inspect Risk Matrix →
             </button>
           </div>
         </div>
       )}
 
-      {/* The Core Product Thesis & Level 7 Master Loop Visualizer */}
-      <div className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
+      {/* Guided 5-Step Intent Compiler Journey */}
+      <div className="glass-panel p-6 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2">
           <div>
-            <span className="text-xs font-bold uppercase tracking-widest text-sky-400 font-mono">
-              Stage 50: The Level 7 Master Loop
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-sky-400 block">
+              Guided 5-Stage Intent Engineering Pipeline
             </span>
-            <h2 className="text-xl font-bold text-white font-display mt-0.5">
+            <h2 className="text-xl font-bold text-white font-display">
               From Human Intent to Verified Software System
             </h2>
           </div>
-          <div className="flex items-center gap-2 text-xs text-slate-400">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-            <span>Continuous Dependency-Aware Feedback Loop Active</span>
+          <div className="flex items-center gap-2 text-xs text-emerald-400 font-mono font-semibold">
+            <ShieldCheck className="w-4 h-4" />
+            <span>Dependency-Aware Loop Active</span>
           </div>
         </div>
 
-        {/* Interactive Master Pipeline Steps */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 pt-2">
           {[
-            { step: '01', title: 'Capture Idea', mode: 'IDEA', tab: 'idea', icon: Sparkles },
-            { step: '02', title: '100 Questions', mode: 'DISCOVERY', tab: 'discovery', icon: Compass },
-            { step: '03', title: 'Assumption Firewall', mode: 'SPECIFICATION', tab: 'requirements', icon: FileCheck2 },
-            { step: '04', title: 'Blast Radius', mode: 'ARCHITECTURE', tab: 'dependencies', icon: Share2 },
-            { step: '05', title: 'DB & API Models', mode: 'ARCHITECTURE', tab: 'database', icon: Database },
-            { step: '06', title: 'Security & Costs', mode: 'ARCHITECTURE', tab: 'integrations', icon: DollarSign },
-            { step: '07', title: 'Build Contract', mode: 'BUILD', tab: 'build-contract', icon: FileCode2 },
-            { step: '08', title: 'Code Verify', mode: 'VERIFY', tab: 'verify', icon: GitBranch }
+            {
+              step: '01',
+              title: 'Idea Intake & DNA',
+              desc: 'Structured problem, user personas & business model.',
+              tab: 'idea',
+              status: 'Completed',
+              icon: Sparkles,
+              accent: 'border-sky-500/30 text-sky-400 bg-sky-500/10'
+            },
+            {
+              step: '02',
+              title: '100 Questions',
+              desc: 'Adaptive domain discovery with "Why?" explainability.',
+              tab: 'discovery',
+              status: `${project.questions.filter(q => q.status === 'answered').length}/${project.questions.length} Answered`,
+              icon: Compass,
+              accent: 'border-indigo-500/30 text-indigo-400 bg-indigo-500/10'
+            },
+            {
+              step: '03',
+              title: 'Assumption Firewall',
+              desc: 'Audited requirement contracts & confidence scores.',
+              tab: 'requirements',
+              status: `${project.requirements.length} Contracts`,
+              icon: FileCheck2,
+              accent: 'border-amber-500/30 text-amber-400 bg-amber-500/10'
+            },
+            {
+              step: '04',
+              title: 'Architecture & DB',
+              desc: 'Relational ERD, spatial indexes & API contract studio.',
+              tab: 'database',
+              status: `${project.databaseEntities.length} Tables Mapped`,
+              icon: Database,
+              accent: 'border-emerald-500/30 text-emerald-400 bg-emerald-500/10'
+            },
+            {
+              step: '05',
+              title: 'Build Contract',
+              desc: 'Executable specification export & code verification.',
+              tab: 'build-contract',
+              status: project.isLocked ? 'Locked (v1.0)' : 'Draft Ready',
+              icon: FileCode2,
+              accent: 'border-sky-500/30 text-sky-400 bg-sky-500/10'
+            }
           ].map((item, idx) => {
             const Icon = item.icon;
             return (
               <div
                 key={idx}
-                onClick={() => {
-                  setActiveMode(item.mode as any);
-                  setActiveTab(item.tab as any);
-                }}
-                className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 hover:border-sky-500/40 hover:bg-slate-800/50 transition-all cursor-pointer group text-center flex flex-col items-center justify-center gap-2"
+                onClick={() => setActiveTab(item.tab as any)}
+                className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 hover:border-sky-500/40 hover:bg-slate-900 transition-all cursor-pointer group flex flex-col justify-between space-y-3"
               >
-                <div className="w-8 h-8 rounded-lg bg-slate-900 group-hover:bg-sky-500/20 text-slate-400 group-hover:text-sky-300 flex items-center justify-center transition-colors">
-                  <Icon className="w-4 h-4" />
-                </div>
                 <div>
-                  <span className="text-[10px] font-mono font-bold text-slate-500 block">
-                    STEP {item.step}
-                  </span>
-                  <span className="text-xs font-bold text-slate-200 group-hover:text-white transition-colors">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-mono font-bold text-slate-500">
+                      STEP {item.step}
+                    </span>
+                    <div className={`p-1.5 rounded-lg ${item.accent}`}>
+                      <Icon className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
+                  <h4 className="text-sm font-bold text-white group-hover:text-sky-300 transition-colors">
                     {item.title}
-                  </span>
+                  </h4>
+                  <p className="text-[11px] text-slate-400 mt-1 line-clamp-2 leading-relaxed">
+                    {item.desc}
+                  </p>
+                </div>
+                <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] font-mono font-semibold text-sky-400">
+                  <span>{item.status}</span>
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
             );
@@ -129,162 +182,68 @@ export const DashboardView: React.FC<{ onOpenWhyModal: (qId: string) => void }> 
         </div>
       </div>
 
-      {/* Domain Quick Launch Matrix */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
+      {/* Flagship Interactive Playground Switcher */}
+      <div className="glass-panel p-6 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2">
           <div>
-            <h3 className="text-lg font-bold text-white font-display">
-              Active Software Engineering Domains (20 Segments)
+            <h3 className="text-base font-bold text-white font-display">
+              Pre-Engineered Specification Blueprints
             </h3>
             <p className="text-xs text-slate-400">
-              Explore and refine each domain model before triggering autonomous AI build.
+              Switch projects to experience different vertical architectures and compliance frameworks.
             </p>
           </div>
-          <button
-            onClick={() => setActiveTab('discovery')}
-            className="btn-ghost text-xs text-sky-400 hover:text-sky-300"
-          >
-            Manage Domains & Questions →
-          </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {/* Card 1: Intent & DNA */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Blueprint 1: Logistics & Freight Booking */}
           <div
-            onClick={() => setActiveTab('idea')}
-            className="glass-panel-interactive p-5 cursor-pointer flex flex-col justify-between"
+            onClick={() => switchProject('proj_logistics_truck_booking')}
+            className={`p-5 rounded-2xl border transition-all cursor-pointer ${
+              project.id === 'proj_logistics_truck_booking'
+                ? 'bg-sky-500/15 border-sky-400 shadow-lg shadow-sky-500/10'
+                : 'bg-slate-950/70 border-slate-800 hover:border-slate-700'
+            }`}
           >
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <div className="p-2.5 rounded-xl bg-sky-500/10 text-sky-400 border border-sky-500/20">
-                  <Sparkles className="w-5 h-5" />
-                </div>
-                <span className="text-xs font-mono text-slate-400">Stages 01-02</span>
-              </div>
-              <h4 className="text-base font-bold text-white mb-1">Idea Capture & DNA</h4>
-              <p className="text-xs text-slate-300 line-clamp-2">
-                {project.ideaDNA.problem}
-              </p>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold text-white flex items-center gap-2">
+                <span>🚚 HaulStream Logistics Platform</span>
+                {project.id === 'proj_logistics_truck_booking' && (
+                  <span className="px-2 py-0.2 rounded-full text-[10px] font-mono bg-sky-500 text-white font-bold">
+                    ACTIVE
+                  </span>
+                )}
+              </span>
+              <span className="text-[10px] font-mono text-slate-400">B2B Logistics</span>
             </div>
-            <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-sky-400 font-semibold">
-              <span>{project.ideaDNA.users.length} Personas Extracted</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </div>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Freight matching marketplace with sub-second PostGIS telemetry, cryptographic e-POD, and 2-phase Stripe Connect escrow settlement.
+            </p>
           </div>
 
-          {/* Card 2: Requirements & Firewall */}
+          {/* Blueprint 2: Telehealth & HIPAA EHR Platform */}
           <div
-            onClick={() => setActiveTab('requirements')}
-            className="glass-panel-interactive p-5 cursor-pointer flex flex-col justify-between"
+            onClick={() => switchProject('proj_healthtech_telemedicine')}
+            className={`p-5 rounded-2xl border transition-all cursor-pointer ${
+              project.id === 'proj_healthtech_telemedicine'
+                ? 'bg-sky-500/15 border-sky-400 shadow-lg shadow-sky-500/10'
+                : 'bg-slate-950/70 border-slate-800 hover:border-slate-700'
+            }`}
           >
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <div className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                  <FileCheck2 className="w-5 h-5" />
-                </div>
-                <span className="text-xs font-mono text-slate-400">Stages 10-12</span>
-              </div>
-              <h4 className="text-base font-bold text-white mb-1">Assumption Firewall</h4>
-              <p className="text-xs text-slate-300">
-                Audited requirement contracts with confidence scores, source provenance, and conflict detector.
-              </p>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold text-white flex items-center gap-2">
+                <span>🏥 CuraLink Telehealth EHR</span>
+                {project.id === 'proj_healthtech_telemedicine' && (
+                  <span className="px-2 py-0.2 rounded-full text-[10px] font-mono bg-sky-500 text-white font-bold">
+                    ACTIVE
+                  </span>
+                )}
+              </span>
+              <span className="text-[10px] font-mono text-slate-400">HIPAA Healthcare</span>
             </div>
-            <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-indigo-300 font-semibold">
-              <span>{project.requirements.length} Active Contracts</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </div>
-          </div>
-
-          {/* Card 3: Database & Relations */}
-          <div
-            onClick={() => setActiveTab('database')}
-            className="glass-panel-interactive p-5 cursor-pointer flex flex-col justify-between"
-          >
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                  <Database className="w-5 h-5" />
-                </div>
-                <span className="text-xs font-mono text-slate-400">Stage 18</span>
-              </div>
-              <h4 className="text-base font-bold text-white mb-1">Database Blueprint</h4>
-              <p className="text-xs text-slate-300">
-                ACID schema definitions, spatial PostGIS indexes, soft-delete policies, and one-click DDL generator.
-              </p>
-            </div>
-            <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-emerald-400 font-semibold">
-              <span>{project.databaseEntities.length} Relational Tables</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </div>
-          </div>
-
-          {/* Card 4: API Contracts Studio */}
-          <div
-            onClick={() => setActiveTab('apis')}
-            className="glass-panel-interactive p-5 cursor-pointer flex flex-col justify-between"
-          >
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                  <Terminal className="w-5 h-5" />
-                </div>
-                <span className="text-xs font-mono text-slate-400">Stage 19</span>
-              </div>
-              <h4 className="text-base font-bold text-white mb-1">API Contract Studio</h4>
-              <p className="text-xs text-slate-300">
-                REST/GraphQL specifications, request/response schemas, rate limits, and error code matrices.
-              </p>
-            </div>
-            <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-amber-300 font-semibold">
-              <span>{project.apiEndpoints.length} Endpoint Specs</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </div>
-          </div>
-
-          {/* Card 5: Security & Edge Cases */}
-          <div
-            onClick={() => setActiveTab('security')}
-            className="glass-panel-interactive p-5 cursor-pointer flex flex-col justify-between"
-          >
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <div className="p-2.5 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20">
-                  <ShieldAlert className="w-5 h-5" />
-                </div>
-                <span className="text-xs font-mono text-slate-400">Stages 23-25</span>
-              </div>
-              <h4 className="text-base font-bold text-white mb-1">Security & Edge Cases</h4>
-              <p className="text-xs text-slate-300">
-                Happy, Failure & Recovery path matrices, OWASP Top 10 rules, and privacy compliance.
-              </p>
-            </div>
-            <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-rose-300 font-semibold">
-              <span>{project.edgeCases.length} Scenarios Mapped</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </div>
-          </div>
-
-          {/* Card 6: Build Contract & Code Verification */}
-          <div
-            onClick={() => setActiveTab('build-contract')}
-            className="glass-panel-interactive p-5 cursor-pointer flex flex-col justify-between"
-          >
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <div className="p-2.5 rounded-xl bg-sky-500/10 text-sky-400 border border-sky-500/20">
-                  <FileCode2 className="w-5 h-5" />
-                </div>
-                <span className="text-xs font-mono text-slate-400">Stages 33-35</span>
-              </div>
-              <h4 className="text-base font-bold text-white mb-1">Build Contract & Handoff</h4>
-              <p className="text-xs text-slate-300">
-                Export single source of truth specifications for Claude, Cursor, Copilot, or run live code verification.
-              </p>
-            </div>
-            <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-sky-400 font-semibold">
-              <span>Export & Verify →</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </div>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              HIPAA-compliant encrypted WebRTC consultations, SureScripts e-prescription routing, and AWS KMS envelope encryption.
+            </p>
           </div>
         </div>
       </div>

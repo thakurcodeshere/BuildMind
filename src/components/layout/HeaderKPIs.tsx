@@ -10,22 +10,40 @@ import {
   Unlock,
   ShieldCheck,
   CheckCircle2,
-  Terminal
+  Terminal,
+  ArrowRight,
+  Sparkles
 } from 'lucide-react';
 
-export const HeaderKPIs: React.FC = () => {
+interface HeaderKPIsProps {
+  onNavigateToTab?: (tab: any) => void;
+}
+
+export const HeaderKPIs: React.FC<HeaderKPIsProps> = ({ onNavigateToTab }) => {
   const { project, stats, setActiveTab } = useProject();
+
+  const handleActionClick = () => {
+    if (stats.criticalBlockersCount > 0) {
+      setActiveTab('risks');
+    } else if (stats.unconfirmedAssumptionsCount > 0) {
+      setActiveTab('requirements');
+    } else if (stats.buildReadinessScore >= 80) {
+      setActiveTab('build-contract');
+    } else {
+      setActiveTab('discovery');
+    }
+  };
 
   return (
     <div className="max-w-[1700px] mx-auto px-4 sm:px-6 pt-6 pb-2">
       {/* Title & Tagline Banner */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6 pb-6 border-b border-slate-800/80">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-6 pb-6 border-b border-slate-800/80">
         <div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight font-display">
               {project.name}
             </h1>
-            <span className={`px-2.5 py-0.5 rounded-full text-xs font-mono font-bold border ${
+            <span className={`px-3 py-1 rounded-full text-xs font-mono font-bold border ${
               project.isLocked 
                 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' 
                 : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
@@ -33,14 +51,38 @@ export const HeaderKPIs: React.FC = () => {
               {project.version}
             </span>
           </div>
-          <p className="text-sm text-slate-400 mt-1 font-medium max-w-3xl">
+          <p className="text-sm text-slate-400 mt-1.5 font-medium max-w-3xl leading-relaxed">
             {project.tagline}
           </p>
         </div>
 
-        {/* Global Readiness Gauge Widget */}
-        <div className="flex items-center gap-6 p-3 px-5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-xl self-start lg:self-auto">
+        {/* Global Readiness Gauge & Next Action Card */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 p-4 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-xl self-start lg:self-auto">
           <ReadinessMeter score={stats.buildReadinessScore} />
+
+          <div className="h-12 w-px bg-slate-800 hidden sm:block" />
+
+          {/* User-friendly Next Recommended Action Button */}
+          <div className="flex flex-col justify-center">
+            <span className="text-[10px] font-mono font-bold uppercase text-slate-400 mb-1">
+              Recommended Next Action:
+            </span>
+            <button
+              onClick={handleActionClick}
+              className="btn-primary text-xs px-4 py-2 flex items-center justify-between gap-2 shadow-md"
+            >
+              <span>
+                {stats.criticalBlockersCount > 0
+                  ? `Resolve ${stats.criticalBlockersCount} Blocker${stats.criticalBlockersCount > 1 ? 's' : ''}`
+                  : stats.unconfirmedAssumptionsCount > 0
+                  ? `Review ${stats.unconfirmedAssumptionsCount} Assumption${stats.unconfirmedAssumptionsCount > 1 ? 's' : ''}`
+                  : stats.buildReadinessScore >= 80
+                  ? 'Export Verified Build Contract'
+                  : 'Complete Discovery Questions'}
+              </span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -49,7 +91,7 @@ export const HeaderKPIs: React.FC = () => {
         {/* Metric 1: Requirement Coverage */}
         <div 
           onClick={() => setActiveTab('requirements')}
-          className="p-3.5 rounded-xl bg-slate-900/70 border border-slate-800/90 hover:border-slate-700 transition-all cursor-pointer group"
+          className="p-3.5 rounded-xl bg-slate-900/70 border border-slate-800/90 hover:border-sky-500/40 hover:bg-slate-900 transition-all cursor-pointer group"
         >
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs font-medium text-slate-400">Coverage</span>
@@ -64,7 +106,7 @@ export const HeaderKPIs: React.FC = () => {
         {/* Metric 2: Architecture Confidence */}
         <div 
           onClick={() => setActiveTab('architecture')}
-          className="p-3.5 rounded-xl bg-slate-900/70 border border-slate-800/90 hover:border-slate-700 transition-all cursor-pointer group"
+          className="p-3.5 rounded-xl bg-slate-900/70 border border-slate-800/90 hover:border-emerald-500/40 hover:bg-slate-900 transition-all cursor-pointer group"
         >
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs font-medium text-slate-400">Architecture</span>
@@ -79,7 +121,7 @@ export const HeaderKPIs: React.FC = () => {
         {/* Metric 3: Critical Blockers */}
         <div 
           onClick={() => setActiveTab('risks')}
-          className="p-3.5 rounded-xl bg-slate-900/70 border border-slate-800/90 hover:border-rose-500/40 transition-all cursor-pointer group"
+          className="p-3.5 rounded-xl bg-slate-900/70 border border-slate-800/90 hover:border-rose-500/40 hover:bg-slate-900 transition-all cursor-pointer group"
         >
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs font-medium text-slate-400">Blockers</span>
@@ -96,7 +138,7 @@ export const HeaderKPIs: React.FC = () => {
         {/* Metric 4: Assumptions Pending */}
         <div 
           onClick={() => setActiveTab('requirements')}
-          className="p-3.5 rounded-xl bg-slate-900/70 border border-slate-800/90 hover:border-amber-500/40 transition-all cursor-pointer group"
+          className="p-3.5 rounded-xl bg-slate-900/70 border border-slate-800/90 hover:border-amber-500/40 hover:bg-slate-900 transition-all cursor-pointer group"
         >
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs font-medium text-slate-400">Assumptions</span>
@@ -111,7 +153,7 @@ export const HeaderKPIs: React.FC = () => {
         {/* Metric 5: Tracked Dependencies */}
         <div 
           onClick={() => setActiveTab('dependencies')}
-          className="p-3.5 rounded-xl bg-slate-900/70 border border-slate-800/90 hover:border-sky-500/40 transition-all cursor-pointer group"
+          className="p-3.5 rounded-xl bg-slate-900/70 border border-slate-800/90 hover:border-sky-500/40 hover:bg-slate-900 transition-all cursor-pointer group"
         >
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs font-medium text-slate-400">Dependencies</span>
@@ -126,7 +168,7 @@ export const HeaderKPIs: React.FC = () => {
         {/* Metric 6: Spec Version & Lock */}
         <div 
           onClick={() => setActiveTab('build-contract')}
-          className="p-3.5 rounded-xl bg-slate-900/70 border border-slate-800/90 hover:border-slate-700 transition-all cursor-pointer group"
+          className="p-3.5 rounded-xl bg-slate-900/70 border border-slate-800/90 hover:border-slate-700 hover:bg-slate-900 transition-all cursor-pointer group"
         >
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs font-medium text-slate-400">Spec Lock</span>
