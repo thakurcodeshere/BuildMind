@@ -11,18 +11,43 @@ import {
   Database,
   Bell,
   Lock,
-  History
+  History,
+  Play,
+  RotateCcw,
+  Sparkles,
+  Zap
 } from 'lucide-react';
 
 export const ActorsWorkflowsView: React.FC = () => {
   const { project } = useProject();
-  const [activeSubTab, setActiveSubTab] = useState<'actors' | 'matrix' | 'workflows' | 'contracts'>('workflows');
+  const [activeSubTab, setActiveSubTab] = useState<'workflows' | 'contracts' | 'matrix' | 'actors'>('workflows');
+  const [activeSimulatingStep, setActiveSimulatingStep] = useState<number | null>(null);
+  const [isSimulating, setIsSimulating] = useState(false);
+
+  const handleRunSimulation = (totalSteps: number) => {
+    setIsSimulating(true);
+    setActiveSimulatingStep(1);
+
+    let current = 1;
+    const interval = setInterval(() => {
+      current += 1;
+      if (current > totalSteps) {
+        clearInterval(interval);
+        setTimeout(() => {
+          setIsSimulating(false);
+          setActiveSimulatingStep(null);
+        }, 1200);
+      } else {
+        setActiveSimulatingStep(current);
+      }
+    }, 900);
+  };
 
   return (
     <div className="space-y-8 animate-view-in pb-12">
       {/* Header Banner */}
-      <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950/40 border border-slate-800 shadow-xl">
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+      <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950/40 border border-slate-800 shadow-xl relative overflow-hidden">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 relative z-10">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/30">
@@ -34,7 +59,7 @@ export const ActorsWorkflowsView: React.FC = () => {
               The Role, Workflow & Feature Contract Engine
             </h2>
             <p className="text-xs text-slate-300 max-w-3xl mt-1">
-              Every major feature is decomposed into a strict sequence of steps with explicit preconditions, validations, database state transitions, failure recovery paths, and security boundaries.
+              Every major capability is decomposed into an executable workflow contract with explicit preconditions, validations, database state mutations, failure recovery paths, and security boundaries.
             </p>
           </div>
 
@@ -85,7 +110,7 @@ export const ActorsWorkflowsView: React.FC = () => {
         <div className="space-y-6">
           {project.workflows.map((wf) => (
             <div key={wf.id} className="glass-panel p-6 space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-slate-800">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-800">
                 <div>
                   <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-sky-400">
                     Workflow Model
@@ -95,10 +120,18 @@ export const ActorsWorkflowsView: React.FC = () => {
                   </h3>
                   <p className="text-xs text-slate-300 mt-1">{wf.summary}</p>
                 </div>
+
                 <div className="flex items-center gap-2 self-start sm:self-auto">
-                  <span className="px-3 py-1 rounded-lg text-xs font-mono font-bold bg-slate-800 text-sky-300 border border-slate-700">
-                    Primary Actor: {wf.actor}
-                  </span>
+                  <button
+                    onClick={() => handleRunSimulation(wf.steps.length)}
+                    disabled={isSimulating}
+                    className={`btn-primary text-xs px-3.5 py-1.5 flex items-center gap-1.5 ${
+                      isSimulating ? 'bg-emerald-600 border-emerald-400 animate-pulse' : ''
+                    }`}
+                  >
+                    <Play className="w-3.5 h-3.5" />
+                    <span>{isSimulating ? `Executing Step ${activeSimulatingStep}...` : 'Simulate Lifecycle Execution'}</span>
+                  </button>
                 </div>
               </div>
 
@@ -127,18 +160,38 @@ export const ActorsWorkflowsView: React.FC = () => {
                 <div className="space-y-4">
                   {wf.steps.map((step) => {
                     const actor = project.actors.find(a => a.id === step.actorId);
+                    const isStepActive = activeSimulatingStep === step.stepNumber;
+                    const isStepCompleted = activeSimulatingStep !== null && activeSimulatingStep > step.stepNumber;
+
                     return (
                       <div
                         key={step.stepNumber}
-                        className="p-4 rounded-xl bg-slate-950/70 border border-slate-800 hover:border-slate-700 transition-all space-y-3"
+                        className={`p-4 rounded-xl border transition-all duration-300 space-y-3 ${
+                          isStepActive
+                            ? 'bg-sky-500/20 border-sky-400 shadow-lg shadow-sky-500/20 transform scale-[1.01]'
+                            : isStepCompleted
+                            ? 'bg-emerald-950/20 border-emerald-500/40'
+                            : 'bg-slate-950/70 border-slate-800 hover:border-slate-700'
+                        }`}
                       >
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                           <div className="flex items-center gap-3">
-                            <span className="w-7 h-7 rounded-lg bg-sky-500/20 text-sky-400 font-mono font-bold text-xs flex items-center justify-center border border-sky-500/40">
-                              {step.stepNumber}
+                            <span className={`w-7 h-7 rounded-lg font-mono font-bold text-xs flex items-center justify-center border transition-all ${
+                              isStepActive
+                                ? 'bg-sky-400 text-slate-950 border-sky-300 animate-bounce'
+                                : isStepCompleted
+                                ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
+                                : 'bg-slate-900 text-slate-400 border-slate-700'
+                            }`}>
+                              {isStepCompleted ? '✓' : step.stepNumber}
                             </span>
-                            <h5 className="text-sm font-bold text-white">
-                              {step.actionTitle}
+                            <h5 className="text-sm font-bold text-white flex items-center gap-2">
+                              <span>{step.actionTitle}</span>
+                              {isStepActive && (
+                                <span className="px-2 py-0.2 rounded text-[9px] font-mono uppercase bg-sky-500 text-white animate-pulse">
+                                  Running State Mutation...
+                                </span>
+                              )}
                             </h5>
                           </div>
                           <span className="px-2.5 py-0.5 rounded text-[11px] font-mono font-semibold bg-slate-900 text-slate-300 border border-slate-800 self-start sm:self-auto">

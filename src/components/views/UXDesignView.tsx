@@ -9,13 +9,22 @@ import {
   Smartphone,
   CheckCircle2,
   Sparkles,
-  Layers
+  Layers,
+  RefreshCw,
+  AlertTriangle,
+  WifiOff,
+  Lock,
+  Package,
+  MapPin,
+  Truck
 } from 'lucide-react';
 
 export const UXDesignView: React.FC = () => {
   const { project } = useProject();
   const [activeSubTab, setActiveSubTab] = useState<'screens' | 'designSystem' | 'motion'>('screens');
   const [selectedScreenId, setSelectedScreenId] = useState<string>(project.screens[0]?.id || 'screen_shipper_dashboard');
+  const [activePreviewState, setActivePreviewState] = useState<'loading' | 'empty' | 'success' | 'error' | 'offline' | 'permissionDenied'>('success');
+  const [activeDeviceFrame, setActiveDeviceFrame] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
 
   const selectedScreen = project.screens.find(s => s.id === selectedScreenId) || project.screens[0];
   const { designSystem } = project;
@@ -23,8 +32,8 @@ export const UXDesignView: React.FC = () => {
   return (
     <div className="space-y-8 animate-view-in pb-12">
       {/* Header Banner */}
-      <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950/40 border border-slate-800 shadow-xl">
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+      <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950/40 border border-slate-800 shadow-xl relative overflow-hidden">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 relative z-10">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/30">
@@ -73,7 +82,7 @@ export const UXDesignView: React.FC = () => {
         </div>
       </div>
 
-      {/* Sub-view 1: Screen Specs & 6-State Matrix */}
+      {/* Sub-view 1: Screen Specs & 6-State Interactive Studio */}
       {activeSubTab === 'screens' && (
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Screen List Sidebar */}
@@ -97,7 +106,7 @@ export const UXDesignView: React.FC = () => {
             ))}
           </div>
 
-          {/* Screen Details & State Matrix */}
+          {/* Screen Details & Interactive Mockup Studio */}
           <div className="glass-panel p-6 lg:col-span-3 space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-slate-800">
               <div>
@@ -110,82 +119,135 @@ export const UXDesignView: React.FC = () => {
               </span>
             </div>
 
-            {/* Components Tree */}
-            <div>
-              <span className="text-[10px] font-mono font-bold uppercase text-slate-400 block mb-2">
-                Core UI Component Tree:
-              </span>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                {selectedScreen.components.map((comp, idx) => (
-                  <div key={idx} className="p-2.5 rounded-lg bg-slate-950/70 border border-slate-800 flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-sky-400" />
-                    <span className="text-slate-200 font-semibold">{comp}</span>
-                  </div>
+            {/* Interactive State & Device Selector Bar */}
+            <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+              {/* 6 Lifecycle States Buttons */}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-[10px] font-mono font-bold uppercase text-slate-500 mr-1">Preview State:</span>
+                {(['success', 'loading', 'empty', 'error', 'offline', 'permissionDenied'] as const).map((stateKey) => (
+                  <button
+                    key={stateKey}
+                    onClick={() => setActivePreviewState(stateKey)}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold capitalize transition-all ${
+                      activePreviewState === stateKey
+                        ? 'bg-sky-500 text-white shadow-sm shadow-sky-500/20'
+                        : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+                    }`}
+                  >
+                    {stateKey === 'permissionDenied' ? 'Denied (403)' : stateKey}
+                  </button>
                 ))}
               </div>
-            </div>
 
-            {/* 6 Mandatory UI States Matrix */}
-            <div>
-              <span className="text-[10px] font-mono font-bold uppercase text-slate-400 block mb-3">
-                Mandatory 6-State UI Behavior Matrix:
-              </span>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
-                <div className="p-3 rounded-xl bg-slate-950/70 border border-sky-500/20">
-                  <span className="text-[10px] font-mono font-bold uppercase text-sky-400 block mb-1">Loading State</span>
-                  <p className="text-slate-300">{selectedScreen.states.loading}</p>
-                </div>
-                <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800">
-                  <span className="text-[10px] font-mono font-bold uppercase text-slate-400 block mb-1">Empty State</span>
-                  <p className="text-slate-300">{selectedScreen.states.empty}</p>
-                </div>
-                <div className="p-3 rounded-xl bg-slate-950/70 border border-emerald-500/20">
-                  <span className="text-[10px] font-mono font-bold uppercase text-emerald-400 block mb-1">Success / Live State</span>
-                  <p className="text-slate-300">{selectedScreen.states.success}</p>
-                </div>
-                <div className="p-3 rounded-xl bg-slate-950/70 border border-rose-500/20">
-                  <span className="text-[10px] font-mono font-bold uppercase text-rose-400 block mb-1">Error State</span>
-                  <p className="text-slate-300">{selectedScreen.states.error}</p>
-                </div>
-                <div className="p-3 rounded-xl bg-slate-950/70 border border-amber-500/20">
-                  <span className="text-[10px] font-mono font-bold uppercase text-amber-400 block mb-1">Offline State</span>
-                  <p className="text-slate-300">{selectedScreen.states.offline}</p>
-                </div>
-                <div className="p-3 rounded-xl bg-slate-950/70 border border-indigo-500/20">
-                  <span className="text-[10px] font-mono font-bold uppercase text-indigo-400 block mb-1">Denied / 403 State</span>
-                  <p className="text-slate-300">{selectedScreen.states.permissionDenied}</p>
-                </div>
+              {/* Device View Switcher */}
+              <div className="flex items-center gap-1 bg-slate-900 p-1 rounded-lg border border-slate-800">
+                <button
+                  onClick={() => setActiveDeviceFrame('desktop')}
+                  className={`p-1.5 rounded ${activeDeviceFrame === 'desktop' ? 'bg-slate-800 text-sky-400' : 'text-slate-500 hover:text-white'}`}
+                  title="Desktop View"
+                >
+                  <Monitor className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setActiveDeviceFrame('tablet')}
+                  className={`p-1.5 rounded ${activeDeviceFrame === 'tablet' ? 'bg-slate-800 text-sky-400' : 'text-slate-500 hover:text-white'}`}
+                  title="Tablet View"
+                >
+                  <Tablet className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setActiveDeviceFrame('mobile')}
+                  className={`p-1.5 rounded ${activeDeviceFrame === 'mobile' ? 'bg-slate-800 text-sky-400' : 'text-slate-500 hover:text-white'}`}
+                  title="Mobile View"
+                >
+                  <Smartphone className="w-4 h-4" />
+                </button>
               </div>
             </div>
 
-            {/* Responsive Breakpoints */}
-            <div className="pt-2 border-t border-slate-800">
-              <span className="text-[10px] font-mono font-bold uppercase text-slate-400 block mb-3">
-                Responsive Breakpoints Behavior:
-              </span>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-                <div className="p-3 rounded-lg bg-slate-900 border border-slate-800 flex items-start gap-2.5">
-                  <Smartphone className="w-4 h-4 text-sky-400 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <strong className="text-white block">Mobile (&lt; 640px)</strong>
-                    <p className="text-slate-400 text-[11px] mt-0.5">{selectedScreen.responsiveBreakpoints.mobile}</p>
+            {/* Live Interactive State Mockup Frame */}
+            <div className="p-6 rounded-2xl bg-slate-950 border border-slate-800/80 min-h-[260px] flex items-center justify-center relative overflow-hidden">
+              {activePreviewState === 'loading' && (
+                <div className="w-full space-y-3 animate-pulse max-w-lg">
+                  <div className="h-6 bg-slate-800 rounded w-1/3" />
+                  <div className="h-20 bg-slate-900 rounded-xl" />
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="h-16 bg-slate-900 rounded-xl" />
+                    <div className="h-16 bg-slate-900 rounded-xl" />
+                  </div>
+                  <span className="text-xs font-mono text-sky-400 block text-center mt-2">
+                    {selectedScreen.states.loading}
+                  </span>
+                </div>
+              )}
+
+              {activePreviewState === 'empty' && (
+                <div className="text-center space-y-3 p-6 max-w-md">
+                  <div className="w-12 h-12 rounded-2xl bg-slate-900 text-slate-400 flex items-center justify-center mx-auto border border-slate-800">
+                    <Package className="w-6 h-6" />
+                  </div>
+                  <h4 className="text-sm font-bold text-white">Empty State Active</h4>
+                  <p className="text-xs text-slate-400">{selectedScreen.states.empty}</p>
+                  <button className="btn-primary text-xs px-4 py-1.5 mx-auto">
+                    Post First Shipment
+                  </button>
+                </div>
+              )}
+
+              {activePreviewState === 'success' && (
+                <div className="w-full space-y-3 max-w-xl">
+                  <div className="flex items-center justify-between p-3 bg-slate-900 rounded-xl border border-slate-800">
+                    <div className="flex items-center gap-2.5">
+                      <Truck className="w-5 h-5 text-sky-400" />
+                      <div>
+                        <span className="text-xs font-bold text-white block">Active Freight Route #HL-84920</span>
+                        <span className="text-[10px] text-slate-400">Chicago, IL → Los Angeles, CA</span>
+                      </div>
+                    </div>
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                      IN_TRANSIT (ON SCHEDULE)
+                    </span>
+                  </div>
+                  <div className="p-3 bg-slate-900/60 rounded-xl border border-slate-800 text-xs text-slate-300">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Live State Behavior:</span>
+                    <p>{selectedScreen.states.success}</p>
                   </div>
                 </div>
-                <div className="p-3 rounded-lg bg-slate-900 border border-slate-800 flex items-start gap-2.5">
-                  <Tablet className="w-4 h-4 text-indigo-400 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <strong className="text-white block">Tablet (640px - 1024px)</strong>
-                    <p className="text-slate-400 text-[11px] mt-0.5">{selectedScreen.responsiveBreakpoints.tablet}</p>
+              )}
+
+              {activePreviewState === 'error' && (
+                <div className="text-center space-y-3 p-6 max-w-md">
+                  <div className="w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-400 flex items-center justify-center mx-auto border border-rose-500/30">
+                    <AlertTriangle className="w-6 h-6" />
                   </div>
+                  <h4 className="text-sm font-bold text-rose-300">Error State Triggered</h4>
+                  <p className="text-xs text-slate-300">{selectedScreen.states.error}</p>
+                  <button className="btn-secondary text-xs px-4 py-1.5 mx-auto">
+                    <RefreshCw className="w-3 h-3" />
+                    <span>Retry Stream</span>
+                  </button>
                 </div>
-                <div className="p-3 rounded-lg bg-slate-900 border border-slate-800 flex items-start gap-2.5">
-                  <Monitor className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <strong className="text-white block">Desktop (&gt; 1024px)</strong>
-                    <p className="text-slate-400 text-[11px] mt-0.5">{selectedScreen.responsiveBreakpoints.desktop}</p>
+              )}
+
+              {activePreviewState === 'offline' && (
+                <div className="text-center space-y-3 p-6 max-w-md">
+                  <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-400 flex items-center justify-center mx-auto border border-amber-500/30">
+                    <WifiOff className="w-6 h-6" />
                   </div>
+                  <h4 className="text-sm font-bold text-amber-300">Offline PWA Queue Active</h4>
+                  <p className="text-xs text-slate-300">{selectedScreen.states.offline}</p>
                 </div>
-              </div>
+              )}
+
+              {activePreviewState === 'permissionDenied' && (
+                <div className="text-center space-y-3 p-6 max-w-md">
+                  <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center mx-auto border border-indigo-500/30">
+                    <Lock className="w-6 h-6" />
+                  </div>
+                  <h4 className="text-sm font-bold text-white">403 Forbidden Access</h4>
+                  <p className="text-xs text-slate-300">{selectedScreen.states.permissionDenied}</p>
+                </div>
+              )}
             </div>
           </div>
         </div>

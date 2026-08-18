@@ -10,14 +10,18 @@ import {
   Check,
   Code,
   Layers,
-  FileText
+  FileText,
+  Sparkles,
+  Share2,
+  Table,
+  Plus
 } from 'lucide-react';
 
 export const DatabaseView: React.FC = () => {
   const { project } = useProject();
   const [selectedEntityId, setSelectedEntityId] = useState<string>(project.databaseEntities[0]?.id || 'db_organizations');
   const [copiedSQL, setCopiedSQL] = useState(false);
-  const [viewMode, setViewMode] = useState<'visual' | 'sql'>('visual');
+  const [viewMode, setViewMode] = useState<'visual' | 'erd' | 'sql'>('visual');
 
   const selectedEntity = project.databaseEntities.find(e => e.id === selectedEntityId) || project.databaseEntities[0];
   const ddlSql = generatePostgreSqlDDL(project);
@@ -31,20 +35,20 @@ export const DatabaseView: React.FC = () => {
   return (
     <div className="space-y-8 animate-view-in pb-12">
       {/* Header Banner */}
-      <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950/40 border border-slate-800 shadow-xl">
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+      <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950/40 border border-slate-800 shadow-xl relative overflow-hidden">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 relative z-10">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/30">
                 STAGE 18
               </span>
-              <span className="text-xs text-slate-400 font-medium">Database Blueprint Engine</span>
+              <span className="text-xs text-slate-400 font-medium">Database Blueprint & Relational ERD Studio</span>
             </div>
             <h2 className="text-2xl font-bold text-white font-display">
-              Relational Schema, Entities & DDL Studio
+              Relational Schema, Entity Models & DDL Engine
             </h2>
             <p className="text-xs text-slate-300 max-w-3xl mt-1">
-              Deterministic database models compiled with primary/foreign keys, spatial GIST indexes, soft-deletion policies, and PostgreSQL Row-Level Security isolation.
+              ACID relational schema definitions compiled with primary/foreign keys, spatial PostGIS indexes, soft-deletion lifecycles, and PostgreSQL Row-Level Security isolation.
             </p>
           </div>
 
@@ -55,8 +59,17 @@ export const DatabaseView: React.FC = () => {
                 viewMode === 'visual' ? 'bg-sky-500 text-white' : 'btn-secondary'
               }`}
             >
-              <Layers className="w-3.5 h-3.5" />
-              <span>Entity Visualizer</span>
+              <Table className="w-3.5 h-3.5" />
+              <span>Table Inspector</span>
+            </button>
+            <button
+              onClick={() => setViewMode('erd')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                viewMode === 'erd' ? 'bg-sky-500 text-white' : 'btn-secondary'
+              }`}
+            >
+              <Share2 className="w-3.5 h-3.5" />
+              <span>Interactive ERD</span>
             </button>
             <button
               onClick={() => setViewMode('sql')}
@@ -65,13 +78,14 @@ export const DatabaseView: React.FC = () => {
               }`}
             >
               <Code className="w-3.5 h-3.5" />
-              <span>Generated SQL DDL</span>
+              <span>PostgreSQL DDL</span>
             </button>
           </div>
         </div>
       </div>
 
-      {viewMode === 'visual' ? (
+      {/* Sub-View 1: Table Inspector */}
+      {viewMode === 'visual' && (
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Table Directory Sidebar */}
           <div className="glass-panel p-4 space-y-2 lg:col-span-1">
@@ -193,8 +207,61 @@ export const DatabaseView: React.FC = () => {
             </div>
           </div>
         </div>
-      ) : (
-        /* SQL DDL Code View */
+      )}
+
+      {/* Sub-View 2: Interactive ERD Visualizer */}
+      {viewMode === 'erd' && (
+        <div className="glass-panel p-6 space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+            <div>
+              <h3 className="text-base font-bold text-white font-display">
+                Entity-Relationship Diagram (ERD Schema Map)
+              </h3>
+              <p className="text-xs text-slate-400">
+                Relational foreign key linkages between multi-tenant parent accounts, users, and core lifecycle entities.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
+            {project.databaseEntities.map((entity) => (
+              <div
+                key={entity.id}
+                className="p-4 rounded-xl bg-slate-950/80 border border-slate-700/80 shadow-md space-y-3"
+              >
+                <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+                  <div className="flex items-center gap-2">
+                    <Database className="w-3.5 h-3.5 text-sky-400" />
+                    <span className="font-bold text-white font-mono text-xs">{entity.tableName}</span>
+                  </div>
+                  <span className="text-[10px] font-mono text-slate-500">{entity.fields.length} fields</span>
+                </div>
+
+                <div className="space-y-1 text-[11px] font-mono">
+                  {entity.fields.map((f, idx) => (
+                    <div
+                      key={idx}
+                      className={`flex items-center justify-between p-1 rounded ${
+                        f.isPrimary ? 'bg-amber-500/10 text-amber-300 font-bold' : f.foreignKey ? 'bg-sky-500/10 text-sky-300' : 'text-slate-300'
+                      }`}
+                    >
+                      <span className="flex items-center gap-1 truncate">
+                        {f.isPrimary && <Key className="w-2.5 h-2.5 text-amber-400 flex-shrink-0" />}
+                        {f.foreignKey && <Link className="w-2.5 h-2.5 text-sky-400 flex-shrink-0" />}
+                        <span className="truncate">{f.name}</span>
+                      </span>
+                      <span className="text-[10px] text-slate-500">{f.type.split('(')[0]}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Sub-View 3: SQL DDL Code View */}
+      {viewMode === 'sql' && (
         <div className="glass-panel p-6 space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-slate-800">
             <div>
