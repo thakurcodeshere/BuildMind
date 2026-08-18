@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 :root {
   --bg-primary: #060911;
@@ -11,9 +9,9 @@
   --bg-glass: rgba(15, 23, 42, 0.78);
   --bg-glass-strong: rgba(11, 17, 32, 0.92);
   
-  --border-subtle: rgba(148, 163, 184, 0.08);
-  --border-medium: rgba(148, 163, 184, 0.16);
-  --border-active: rgba(56, 189, 248, 0.45);
+  --border-subtle: rgba(148, 163, 184, 0.12);
+  --border-medium: rgba(148, 163, 184, 0.22);
+  --border-active: rgba(56, 189, 248, 0.5);
   --border-glow: rgba(56, 189, 248, 0.2);
   
   --text-main: #f8fafc;
@@ -35,23 +33,23 @@
   padding: 0;
 }
 
-html {
-  scroll-behavior: smooth;
-}
-
-body {
+html, body {
+  background-color: #060911;
+  color: #f8fafc;
   font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background-color: var(--bg-primary);
-  background-image: 
-    radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.04) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, rgba(99, 102, 241, 0.04) 0px, transparent 50%),
-    radial-gradient(at 50% 100%, rgba(16, 185, 129, 0.03) 0px, transparent 50%);
-  background-attachment: fixed;
-  color: var(--text-main);
   min-height: 100vh;
   overflow-x: hidden;
   letter-spacing: -0.012em;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Background Ambient Lighting */
+body {
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.05) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(99, 102, 241, 0.05) 0px, transparent 50%),
+    radial-gradient(at 50% 100%, rgba(16, 185, 129, 0.03) 0px, transparent 50%);
+  background-attachment: fixed;
 }
 
 code, pre, .font-mono {
@@ -65,8 +63,8 @@ h1, h2, h3, .font-display {
 
 /* Custom Scrollbars */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -84,12 +82,12 @@ h1, h2, h3, .font-display {
 
 /* Glassmorphic Surfaces */
 .glass-panel {
-  background: var(--bg-glass);
+  background: rgba(15, 23, 42, 0.78);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border-subtle);
-  border-radius: 14px;
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 16px;
+  box-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.45);
   position: relative;
   overflow: hidden;
 }
@@ -101,18 +99,18 @@ h1, h2, h3, .font-display {
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
   pointer-events: none;
 }
 
 .glass-panel-interactive {
-  background: var(--bg-glass);
+  background: rgba(15, 23, 42, 0.78);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border-subtle);
-  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 16px;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.45);
   position: relative;
   overflow: hidden;
 }
@@ -124,15 +122,15 @@ h1, h2, h3, .font-display {
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
   pointer-events: none;
 }
 
 .glass-panel-interactive:hover {
-  background: rgba(20, 32, 58, 0.85);
-  border-color: var(--border-medium);
+  background: rgba(20, 32, 58, 0.88);
+  border-color: rgba(56, 189, 248, 0.4);
   transform: translateY(-2px);
-  box-shadow: 0 14px 30px -4px rgba(0, 0, 0, 0.5), 0 0 20px var(--accent-cyan-glow);
+  box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.6), 0 0 25px rgba(56, 189, 248, 0.12);
 }
 
 .glass-panel-interactive:active {
@@ -146,22 +144,22 @@ h1, h2, h3, .font-display {
   font-weight: 600;
   padding: 0.625rem 1.25rem;
   border-radius: 10px;
-  border: 1px solid rgba(56, 189, 248, 0.35);
+  border: 1px solid rgba(56, 189, 248, 0.4);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.2);
   position: relative;
   overflow: hidden;
 }
 
 .btn-primary:hover {
   background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
-  border-color: rgba(56, 189, 248, 0.7);
+  border-color: rgba(56, 189, 248, 0.8);
   transform: translateY(-1px);
-  box-shadow: 0 8px 25px rgba(2, 132, 199, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  box-shadow: 0 8px 25px rgba(2, 132, 199, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .btn-primary:active {
@@ -170,23 +168,23 @@ h1, h2, h3, .font-display {
 }
 
 .btn-secondary {
-  background: rgba(30, 41, 59, 0.75);
+  background: rgba(30, 41, 59, 0.8);
   color: #f1f5f9;
   font-weight: 500;
   padding: 0.625rem 1.25rem;
   border-radius: 10px;
-  border: 1px solid var(--border-medium);
+  border: 1px solid rgba(148, 163, 184, 0.2);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .btn-secondary:hover {
-  background: rgba(51, 65, 85, 0.85);
-  border-color: rgba(148, 163, 184, 0.35);
+  background: rgba(51, 65, 85, 0.9);
+  border-color: rgba(148, 163, 184, 0.4);
   color: #ffffff;
   transform: translateY(-1px);
 }
@@ -197,7 +195,7 @@ h1, h2, h3, .font-display {
 
 .btn-ghost {
   background: transparent;
-  color: var(--text-muted);
+  color: #94a3b8;
   font-weight: 500;
   padding: 0.5rem 0.875rem;
   border-radius: 8px;
@@ -210,9 +208,9 @@ h1, h2, h3, .font-display {
 }
 
 .btn-ghost:hover {
-  background: rgba(30, 41, 59, 0.55);
-  color: var(--text-main);
-  border-color: var(--border-subtle);
+  background: rgba(30, 41, 59, 0.6);
+  color: #f8fafc;
+  border-color: rgba(148, 163, 184, 0.15);
 }
 
 /* Animations */
@@ -228,7 +226,7 @@ h1, h2, h3, .font-display {
 }
 
 .animate-view-in {
-  animation: fadeInScale 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeInScale 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes pulseGlow {
