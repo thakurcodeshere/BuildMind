@@ -11,7 +11,9 @@ import {
   Plus,
   Compass,
   CheckCircle2,
-  AlertTriangle
+  AlertTriangle,
+  User,
+  Code2
 } from 'lucide-react';
 import { useProject } from '../../context/ProjectContext';
 import { FLAGSHIP_PROJECTS } from '../../data/flagshipProjects';
@@ -22,6 +24,8 @@ export const Header: React.FC = () => {
     history,
     loadProject,
     createNewDraft,
+    userRoleMode,
+    setUserRoleMode,
     setActiveModal,
     setActiveCategory,
     setActiveLayer
@@ -41,7 +45,7 @@ export const Header: React.FC = () => {
           >
             <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
             <div className="text-left">
-              <div className="text-xs font-bold text-slate-100 truncate max-w-[200px] group-hover:text-cyan-300 transition-colors">
+              <div className="text-xs font-bold text-slate-100 truncate max-w-[190px] group-hover:text-cyan-300 transition-colors">
                 {project.title}
               </div>
               <div className="text-[10px] text-slate-400 font-mono flex items-center gap-1.5">
@@ -96,6 +100,7 @@ export const Header: React.FC = () => {
         {/* Spec Freeze Status Pill */}
         <button
           onClick={() => {
+            setUserRoleMode('developer');
             setActiveCategory('build_drift');
             setActiveLayer('spec_freeze');
           }}
@@ -104,19 +109,54 @@ export const Header: React.FC = () => {
               ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-400 hover:bg-emerald-900/40'
               : 'bg-amber-950/40 border-amber-500/40 text-amber-300 hover:bg-amber-900/40'
           }`}
-          title="Click to manage Specification Freeze & Sign-Off"
+          title="Specification Freeze & Sign-Off"
         >
           {project.isSpecFrozen ? (
             <>
               <Lock className="w-3 h-3 text-emerald-400" />
-              <span>SPEC FROZEN (SSOT)</span>
+              <span>FROZEN (SSOT)</span>
             </>
           ) : (
             <>
               <Unlock className="w-3 h-3 text-amber-400" />
-              <span>DRAFT (UNFROZEN)</span>
+              <span>DRAFT</span>
             </>
           )}
+        </button>
+      </div>
+
+      {/* Center: Clean User Mode vs Developer Mode Switcher */}
+      <div className="flex items-center p-0.5 rounded-xl bg-white/[0.04] border border-white/10 shadow-inner">
+        <button
+          onClick={() => {
+            setUserRoleMode('user');
+            setActiveCategory('intake_intent');
+            setActiveLayer('idea_intake');
+          }}
+          className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
+            userRoleMode === 'user'
+              ? 'bg-cyan-500 text-slate-950 font-bold shadow-md shadow-cyan-500/20'
+              : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <User className="w-3.5 h-3.5" />
+          <span>User Studio (3 Layers)</span>
+        </button>
+
+        <button
+          onClick={() => {
+            setUserRoleMode('developer');
+            setActiveCategory('truth_governance');
+            setActiveLayer('assumption_firewall');
+          }}
+          className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
+            userRoleMode === 'developer'
+              ? 'bg-purple-500 text-slate-950 font-bold shadow-md shadow-purple-500/20'
+              : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Code2 className="w-3.5 h-3.5" />
+          <span>Developer Studio (28 Layers)</span>
         </button>
       </div>
 
@@ -125,6 +165,7 @@ export const Header: React.FC = () => {
         {/* Readiness Score Quick Pill */}
         <button
           onClick={() => {
+            setUserRoleMode('developer');
             setActiveCategory('build_drift');
             setActiveLayer('build_readiness');
           }}
@@ -137,6 +178,7 @@ export const Header: React.FC = () => {
         {/* Export Build Contract Button */}
         <button
           onClick={() => {
+            setUserRoleMode('developer');
             setActiveCategory('build_drift');
             setActiveLayer('build_contract');
           }}

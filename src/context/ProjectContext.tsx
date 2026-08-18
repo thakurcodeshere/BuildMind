@@ -24,12 +24,14 @@ interface ProjectContextType {
   history: IntentOSProject[];
   activeCategory: EngineeringCategory;
   activeLayer: LayerId;
+  userRoleMode: 'user' | 'developer';
   isProcessing: boolean;
   searchQuery: string;
   settings: UserSettings;
   activeModal: string | null;
   
   // Navigation & UI state
+  setUserRoleMode: (mode: 'user' | 'developer') => void;
   setActiveCategory: (cat: EngineeringCategory) => void;
   setActiveLayer: (layer: LayerId) => void;
   setSearchQuery: (query: string) => void;
@@ -118,6 +120,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return DEFAULT_SETTINGS;
   });
 
+  const [userRoleMode, setUserRoleMode] = useState<'user' | 'developer'>('user');
   const [activeCategory, setActiveCategory] = useState<EngineeringCategory>('intake_intent');
   const [activeLayer, setActiveLayer] = useState<LayerId>('idea_intake');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -148,8 +151,8 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setProject(synthesized);
       setHistory((prev) => [synthesized, ...prev.filter((p) => p.id !== synthesized.id)]);
       setIsProcessing(false);
-      setActiveCategory('truth_governance');
-      setActiveLayer('assumption_firewall');
+      setActiveCategory('intake_intent');
+      setActiveLayer('intent_understanding');
     }, 700);
   };
 
@@ -404,10 +407,12 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         history,
         activeCategory,
         activeLayer,
+        userRoleMode,
         isProcessing,
         searchQuery,
         settings,
         activeModal,
+        setUserRoleMode,
         setActiveCategory,
         setActiveLayer,
         setSearchQuery,

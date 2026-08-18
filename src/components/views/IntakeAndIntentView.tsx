@@ -6,16 +6,15 @@ import {
   MicOff,
   FileText,
   UploadCloud,
-  Send,
-  HelpCircle,
   Layers,
   CheckCircle2,
   AlertCircle,
-  HelpCircle as QuestionIcon,
   ArrowRight,
-  TrendingUp,
-  Cpu,
-  RefreshCw
+  RefreshCw,
+  Code2,
+  Download,
+  User,
+  ShieldCheck
 } from 'lucide-react';
 import { useProject } from '../../context/ProjectContext';
 import { LayerId } from '../../types';
@@ -25,6 +24,9 @@ export const IntakeAndIntentView: React.FC = () => {
     project,
     activeLayer,
     setActiveLayer,
+    userRoleMode,
+    setUserRoleMode,
+    setActiveCategory,
     isProcessing,
     synthesizeNewProject,
     answerQuestion,
@@ -68,17 +70,26 @@ export const IntakeAndIntentView: React.FC = () => {
     }
   };
 
+  // In user mode: only 3 layers. In developer mode: include Layer 4 (Adaptive Q&A)
+  const availableTabs = userRoleMode === 'user'
+    ? [
+        { id: 'idea_intake' as LayerId, num: 1, label: 'Idea Intake Layer' },
+        { id: 'intent_understanding' as LayerId, num: 2, label: 'AI Intent Engine' },
+        { id: 'domain_matrix' as LayerId, num: 3, label: 'Dynamic Domain Matrix' }
+      ]
+    : [
+        { id: 'idea_intake' as LayerId, num: 1, label: 'Idea Intake Layer' },
+        { id: 'intent_understanding' as LayerId, num: 2, label: 'AI Intent Engine' },
+        { id: 'domain_matrix' as LayerId, num: 3, label: 'Dynamic Domain Matrix' },
+        { id: 'adaptive_discovery' as LayerId, num: 4, label: 'Adaptive Q&A System' }
+      ];
+
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#090d16] text-slate-100">
       {/* Sub-header Layer Navigation Tabs */}
       <div className="px-6 py-3 border-b border-white/[0.08] bg-[#070a12] flex items-center justify-between">
-        <div className="flex items-center gap-1.5 overflow-x-auto">
-          {[
-            { id: 'idea_intake' as LayerId, num: 1, label: 'Idea Intake Layer' },
-            { id: 'intent_understanding' as LayerId, num: 2, label: 'AI Intent Engine' },
-            { id: 'domain_matrix' as LayerId, num: 3, label: 'Domain Matrix (40+)' },
-            { id: 'adaptive_discovery' as LayerId, num: 4, label: 'Adaptive Q&A' }
-          ].map((tab) => (
+        <div className="flex items-center gap-2 overflow-x-auto">
+          {availableTabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveLayer(tab.id)}
@@ -95,8 +106,17 @@ export const IntakeAndIntentView: React.FC = () => {
         </div>
 
         <div className="text-[11px] font-mono text-slate-400 flex items-center gap-2">
-          <span>Intake & Intent Group</span>
-          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+          {userRoleMode === 'user' ? (
+            <span className="flex items-center gap-1.5 text-cyan-400 font-semibold">
+              <User className="w-3.5 h-3.5" />
+              <span>User Studio (First 3 Layers)</span>
+            </span>
+          ) : (
+            <span className="flex items-center gap-1.5 text-purple-400 font-semibold">
+              <Code2 className="w-3.5 h-3.5" />
+              <span>Developer Engineering Studio</span>
+            </span>
+          )}
         </div>
       </div>
 
@@ -117,7 +137,7 @@ export const IntakeAndIntentView: React.FC = () => {
                 Explain Your Software Idea Naturally
               </h2>
               <p className="text-xs text-slate-300 max-w-2xl mt-1 leading-relaxed">
-                Describe your vision in plain English, record an audio thought memo, drop existing architectural RFCs, or provide codebase context. IntentOS transforms it into a complete, validated 31-layer build contract.
+                Describe your vision in plain language, record a voice thought memo, or attach existing specifications. BuildMind decomposes your intent and builds a developer-ready engineering contract across all 31 system layers.
               </p>
             </div>
 
@@ -235,7 +255,7 @@ export const IntakeAndIntentView: React.FC = () => {
               {/* Submit / Synthesize Button */}
               <div className="flex items-center justify-between pt-2">
                 <div className="text-[11px] text-slate-400 font-mono">
-                  Engine: <span className="text-cyan-400 font-semibold">IntentOS Synthesis Matrix</span>
+                  Engine: <span className="text-cyan-400 font-semibold">Intent Decomposition Matrix</span>
                 </div>
 
                 <button
@@ -246,12 +266,12 @@ export const IntakeAndIntentView: React.FC = () => {
                   {isProcessing ? (
                     <>
                       <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                      <span>Synthesizing 31 Layers...</span>
+                      <span>Synthesizing Intent...</span>
                     </>
                   ) : (
                     <>
                       <Sparkles className="w-3.5 h-3.5 fill-slate-950" />
-                      <span>Decompose Intent & Generate Spec</span>
+                      <span>Synthesize Intent & Analyze</span>
                       <ArrowRight className="w-3.5 h-3.5 ml-1" />
                     </>
                   )}
@@ -262,7 +282,7 @@ export const IntakeAndIntentView: React.FC = () => {
             {/* Extracted Intake Artifacts */}
             <div className="p-4 rounded-xl bg-[#0b0f19] border border-white/[0.08] space-y-3">
               <div className="text-[11px] font-bold text-slate-300 uppercase tracking-wider font-mono flex items-center justify-between">
-                <span>Active Multimodal Inputs</span>
+                <span>Active Intake Sources</span>
                 <span className="text-cyan-400">{project.intake.multimodalInputs.length} sources attached</span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -287,7 +307,7 @@ export const IntakeAndIntentView: React.FC = () => {
         {/* ======================================================== */}
         {activeLayer === 'intent_understanding' && (
           <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-200">
-            <div className="p-6 rounded-2xl bg-[#0b0f19] border border-white/10 space-y-4">
+            <div className="p-6 rounded-2xl bg-[#0b0f19] border border-white/10 space-y-5">
               <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
                 <div>
                   <div className="text-cyan-400 text-xs font-bold uppercase tracking-wider font-mono">
@@ -361,7 +381,7 @@ export const IntakeAndIntentView: React.FC = () => {
               <div className="p-4 rounded-xl bg-amber-950/20 border border-amber-500/30 space-y-3">
                 <div className="flex items-center gap-2 text-amber-400 text-xs font-bold font-mono uppercase">
                   <AlertCircle className="w-4 h-4" />
-                  <span>Ambiguities, Unknowns & Tension Points Detected</span>
+                  <span>Ambiguities & Tension Points Detected</span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
                   <div>
@@ -390,6 +410,24 @@ export const IntakeAndIntentView: React.FC = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Progression Action */}
+              <div className="flex items-center justify-between pt-2">
+                <button
+                  onClick={() => setActiveLayer('idea_intake')}
+                  className="px-4 py-2 rounded-xl text-slate-400 hover:text-slate-200 text-xs font-semibold"
+                >
+                  ← Edit Intent Prompt
+                </button>
+
+                <button
+                  onClick={() => setActiveLayer('domain_matrix')}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs transition-all shadow-md shadow-cyan-500/20"
+                >
+                  <span>Proceed to Layer 3: Dynamic Domain Matrix</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -406,12 +444,12 @@ export const IntakeAndIntentView: React.FC = () => {
                 </div>
                 <h3 className="text-xl font-bold text-white mt-0.5">Active Engineering Domains (40+)</h3>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  The system dynamically scales engineering domains up or down based on system complexity and risk.
+                  The system automatically configures which engineering disciplines are relevant to your project.
                 </p>
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="text-xs font-mono text-slate-400">
+                <span className="text-xs font-mono text-cyan-300 px-3 py-1 rounded-full bg-cyan-950/40 border border-cyan-500/40">
                   {project.domains.filter((d) => d.isActive).length}/{project.domains.length} Domains Active
                 </span>
               </div>
@@ -456,22 +494,67 @@ export const IntakeAndIntentView: React.FC = () => {
                         Risk: <strong className="text-amber-400">{domain.riskScore}/10</strong>
                       </span>
                     </div>
-                    <span className="text-cyan-400 font-semibold">{domain.answeredCount} Qs Validated</span>
+                    <span className="text-cyan-400 font-semibold">{domain.answeredCount} Specs Ready</span>
                   </div>
                 </div>
               ))}
+            </div>
+
+            {/* Developer Handoff Card for User */}
+            <div className="p-6 rounded-2xl bg-gradient-to-r from-purple-950/40 via-indigo-950/30 to-[#0b0f19] border border-purple-500/30 space-y-4 shadow-xl">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <div className="p-2.5 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/40 shrink-0">
+                    <Code2 className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-base text-white">
+                      User Intake Complete • Specification Ready for Engineers
+                    </h4>
+                    <p className="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">
+                      You have completed the 3 User Layers! The remaining 28 engineering layers (Architecture Diagrams, Database Schemas, OpenAPI Contracts, Threat Models, and Test Suites) have been compiled automatically in the background.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2.5 shrink-0">
+                  <button
+                    onClick={() => {
+                      setUserRoleMode('developer');
+                      setActiveCategory('build_drift');
+                      setActiveLayer('build_contract');
+                    }}
+                    className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/20 text-slate-200 font-semibold text-xs transition-all"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Download Build Contract</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setUserRoleMode('developer');
+                      setActiveCategory('truth_governance');
+                      setActiveLayer('assumption_firewall');
+                    }}
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 text-slate-950 font-bold text-xs transition-all shadow-lg shadow-purple-500/20 cursor-pointer"
+                  >
+                    <span>Open 28 Developer Layers</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}
 
         {/* ======================================================== */}
-        {/* LAYER 4: ADAPTIVE FILL-IN-THE-BLANK SYSTEM */}
+        {/* LAYER 4: ADAPTIVE Q&A SYSTEM (DEVELOPER MODE) */}
         {/* ======================================================== */}
         {activeLayer === 'adaptive_discovery' && (
           <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-200">
             <div>
-              <div className="text-cyan-400 text-xs font-bold uppercase tracking-wider font-mono">
-                Layer 04 • Adaptive Discovery Engine
+              <div className="text-purple-400 text-xs font-bold uppercase tracking-wider font-mono">
+                Layer 04 • Adaptive Discovery Engine (Developer View)
               </div>
               <h3 className="text-xl font-bold text-white mt-0.5">
                 Progressive Q&A ($Complexity \times Risk \times Dependency \times Importance$)
@@ -483,7 +566,7 @@ export const IntakeAndIntentView: React.FC = () => {
 
             {/* Questions List */}
             <div className="space-y-4">
-              {project.discoveryQuestions.map((q, idx) => (
+              {project.discoveryQuestions.map((q) => (
                 <div
                   key={q.id}
                   className="p-5 rounded-2xl bg-[#0b0f19] border border-white/10 space-y-4 shadow-lg"
@@ -491,7 +574,7 @@ export const IntakeAndIntentView: React.FC = () => {
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <div className="flex items-center gap-2 text-[10px] font-mono uppercase text-slate-400 mb-1">
-                        <span className="px-1.5 py-0.2 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
+                        <span className="px-1.5 py-0.2 rounded bg-purple-500/10 text-purple-400 border border-purple-500/30">
                           {q.domainId}
                         </span>
                         <span className="text-amber-400 font-bold">{q.importance}</span>
@@ -502,7 +585,7 @@ export const IntakeAndIntentView: React.FC = () => {
                       <p className="text-xs text-slate-400 mt-1">{q.description}</p>
                     </div>
 
-                    <span className="text-xs font-mono font-bold px-2 py-1 rounded bg-white/5 text-cyan-300 border border-white/10 shrink-0">
+                    <span className="text-xs font-mono font-bold px-2 py-1 rounded bg-white/5 text-purple-300 border border-white/10 shrink-0">
                       Score: {q.depthScore}
                     </span>
                   </div>
@@ -517,7 +600,7 @@ export const IntakeAndIntentView: React.FC = () => {
                           onClick={() => answerQuestion(q.id, opt.id)}
                           className={`p-3 rounded-xl border transition-all cursor-pointer ${
                             isSelected
-                              ? 'bg-cyan-950/40 border-cyan-500/60 text-cyan-100 shadow-sm'
+                              ? 'bg-purple-950/40 border-purple-500/60 text-purple-100 shadow-sm'
                               : 'bg-white/[0.02] border-white/5 hover:bg-white/[0.05] text-slate-300'
                           }`}
                         >
@@ -539,8 +622,8 @@ export const IntakeAndIntentView: React.FC = () => {
                   </div>
 
                   {q.aiRationale && (
-                    <div className="p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.06] text-[11px] text-cyan-300/90 font-mono flex items-start gap-2">
-                      <Sparkles className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />
+                    <div className="p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.06] text-[11px] text-purple-300/90 font-mono flex items-start gap-2">
+                      <Sparkles className="w-3.5 h-3.5 text-purple-400 shrink-0 mt-0.5" />
                       <span>AI Rationale: {q.aiRationale}</span>
                     </div>
                   )}
