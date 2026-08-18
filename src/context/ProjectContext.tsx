@@ -1,286 +1,434 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import {
-  ProjectSpecification,
-  NavigationTab,
-  ProductMode,
-  RequirementItem,
-  DynamicQuestion,
-  CodeVerificationResult
-} from '../types/specification';
-import { initialLogisticsProject } from '../mockData/logisticsProject';
-import { initialHealthTechProject } from '../mockData/healthTechProject';
-import { runSpecificationVerificationScan } from '../utils/codeVerificationEngine';
+  IntentOSProject,
+  LayerId,
+  EngineeringCategory,
+  AssumptionStatus,
+  AssumptionItem,
+  RequirementItem
+} from '../types';
+import { FLAGSHIP_PROJECTS } from '../data/flagshipProjects';
+import { synthesizeProjectFromIntent } from '../services/aiSynthesizer';
 
-export interface ProjectStats {
-  buildReadinessScore: number; // 0 - 100
-  requirementCoverage: number; // %
-  architectureConfidence: number; // %
-  securityReadiness: number; // %
-  uxCompleteness: number; // %
-  openQuestionsCount: number;
-  criticalBlockersCount: number;
-  unconfirmedAssumptionsCount: number;
-  totalDependenciesCount: number;
+interface UserSettings {
+  selectedModel: string;
+  apiKeyOpenAI: string;
+  apiKeyGemini: string;
+  apiKeyAnthropic: string;
+  theme: 'dark' | 'light';
+  autoValidate: boolean;
 }
 
 interface ProjectContextType {
-  project: ProjectSpecification;
-  activeTab: NavigationTab;
-  activeMode: ProductMode;
-  stats: ProjectStats;
-  setActiveTab: (tab: NavigationTab) => void;
-  setActiveMode: (mode: ProductMode) => void;
-  switchProject: (projectId: string) => void;
-  answerQuestion: (questionId: string, answer: string) => void;
-  updateRequirementStatus: (reqId: string, status: RequirementItem['status']) => void;
-  confirmAssumption: (reqId: string) => void;
-  resolveRedFlag: (flagId: string) => void;
-  freezeSpecification: (versionLabel: string, summary: string) => void;
-  runVerificationScan: (codeSnippet: string, fileName: string) => CodeVerificationResult;
-  executeAskAICommand: (promptText: string) => { reply: string; actionApplied?: string };
-  resetProjectToDefault: () => void;
+  project: IntentOSProject;
+  history: IntentOSProject[];
+  activeCategory: EngineeringCategory;
+  activeLayer: LayerId;
+  isProcessing: boolean;
+  searchQuery: string;
+  settings: UserSettings;
+  activeModal: string | null;
+  
+  // Navigation & UI state
+  setActiveCategory: (cat: EngineeringCategory) => void;
+  setActiveLayer: (layer: LayerId) => void;
+  setSearchQuery: (query: string) => void;
+  setActiveModal: (modal: string | null) => void;
+  updateSettings: (newSettings: Partial<UserSettings>) => void;
+  
+  // Core Synthesis & Intake
+  synthesizeNewProject: (rawIdea: string, customTitle?: string) => void;
+  loadProject: (projectId: string) => void;
+  deleteProject: (projectId: string) => void;
+  createNewDraft: () => void;
+  
+  // Assumption Firewall Actions
+  updateAssumptionStatus: (id: string, newStatus: AssumptionStatus) => void;
+  addAssumption: (statement: string, category: string, status: AssumptionStatus, confidence: number) => void;
+  deleteAssumption: (id: string) => void;
+  
+  // Requirements Actions
+  updateRequirementPriority: (id: string, priority: RequirementItem['priority']) => void;
+  addRequirement: (title: string, description: string, domain: string, priority: RequirementItem['priority']) => void;
+  
+  // Adaptive Q&A Actions
+  answerQuestion: (questionId: string, optionId: string, customText?: string) => void;
+  toggleDomain: (domainId: string) => void;
+  
+  // Governance & Freeze
+  toggleSpecFreeze: (signOffParty: string) => void;
+  createSpecVersion: (changeSummary: string, author: string) => void;
+  resolveBlocker: (blockerId: string) => void;
+  resolveDrift: (driftId: string) => void;
+  simulateDriftScan: () => void;
 }
+
+const STORAGE_KEY_CURRENT = 'intentos_active_project_v3';
+const STORAGE_KEY_HISTORY = 'intentos_history_v3';
+const STORAGE_KEY_SETTINGS = 'intentos_settings_v3';
+
+const DEFAULT_SETTINGS: UserSettings = {
+  selectedModel: 'Claude 3.7 Sonnet (Thinking Engine)',
+  apiKeyOpenAI: '',
+  apiKeyGemini: '',
+  apiKeyAnthropic: '',
+  theme: 'dark',
+  autoValidate: true
+};
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 
 export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [project, setProject] = useState<ProjectSpecification>(() => {
-    const saved = localStorage.getItem('intentforge_active_project');
+  // Load Project
+  const [project, setProject] = useState<IntentOSProject>(() => {
+    const saved = localStorage.getItem(STORAGE_KEY_CURRENT);
     if (saved) {
       try {
         return JSON.parse(saved);
       } catch (e) {
-        console.error('Failed to parse cached project', e);
+        console.error('Failed to parse saved IntentOS project state:', e);
       }
     }
-    return initialLogisticsProject;
+    return FLAGSHIP_PROJECTS[0];
   });
 
-  const [activeTab, setActiveTab] = useState<NavigationTab>('dashboard');
-  const [activeMode, setActiveMode] = useState<ProductMode>('SPECIFICATION');
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('intentforge_active_project', JSON.stringify(project));
-    } catch (e) {
-      console.warn('LocalStorage save failed', e);
+  // Load History
+  const [history, setHistory] = useState<IntentOSProject[]>(() => {
+    const saved = localStorage.getItem(STORAGE_KEY_HISTORY);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error('Failed to parse history:', e);
+      }
     }
+    return FLAGSHIP_PROJECTS;
+  });
+
+  // Load Settings
+  const [settings, setSettings] = useState<UserSettings>(() => {
+    const saved = localStorage.getItem(STORAGE_KEY_SETTINGS);
+    if (saved) {
+      try {
+        return { ...DEFAULT_SETTINGS, ...JSON.parse(saved) };
+      } catch (e) {
+        console.error('Failed to parse settings:', e);
+      }
+    }
+    return DEFAULT_SETTINGS;
+  });
+
+  const [activeCategory, setActiveCategory] = useState<EngineeringCategory>('intake_intent');
+  const [activeLayer, setActiveLayer] = useState<LayerId>('idea_intake');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeModal, setActiveModal] = useState<string | null>(null);
+
+  // Sync to LocalStorage
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY_CURRENT, JSON.stringify(project));
   }, [project]);
 
-  // Compute live real-time stats
-  const calculateStats = (): ProjectStats => {
-    const totalQuestions = project.questions.length;
-    const answeredQuestions = project.questions.filter(q => q.status === 'answered').length;
-    const reqs = project.requirements;
-    const confirmedReqs = reqs.filter(r => r.status === 'Confirmed').length;
-    const unconfirmedAssumptions = reqs.filter(r => r.classification === 'ASSUMED' || r.classification === 'CONFLICT').length;
-    const criticalBlockers = project.redFlags.filter(f => f.severity === 'BLOCKER' && !f.resolved).length;
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(history));
+  }, [history]);
 
-    const requirementCoverage = totalQuestions > 0 ? Math.round((answeredQuestions / totalQuestions) * 100) : 90;
-    const securityReadiness = reqs.some(r => r.category === 'Security' && r.status === 'Confirmed') ? 92 : 70;
-    const architectureConfidence = project.databaseEntities.length >= 3 && project.apiEndpoints.length >= 2 ? 94 : 75;
-    const uxCompleteness = project.screens.length >= 2 ? 88 : 65;
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(settings));
+  }, [settings]);
 
-    // Weighted Build Readiness (0 - 100)
-    let score = Math.round(
-      requirementCoverage * 0.3 +
-      securityReadiness * 0.25 +
-      architectureConfidence * 0.25 +
-      uxCompleteness * 0.2
-    );
+  const updateSettings = (newSettings: Partial<UserSettings>) => {
+    setSettings((prev) => ({ ...prev, ...newSettings }));
+  };
 
-    if (criticalBlockers > 0) {
-      score = Math.max(10, score - (criticalBlockers * 12));
+  const synthesizeNewProject = (rawIdea: string, customTitle?: string) => {
+    setIsProcessing(true);
+    setTimeout(() => {
+      const synthesized = synthesizeProjectFromIntent(rawIdea, customTitle);
+      setProject(synthesized);
+      setHistory((prev) => [synthesized, ...prev.filter((p) => p.id !== synthesized.id)]);
+      setIsProcessing(false);
+      setActiveCategory('truth_governance');
+      setActiveLayer('assumption_firewall');
+    }, 700);
+  };
+
+  const loadProject = (projectId: string) => {
+    const found = history.find((p) => p.id === projectId);
+    if (found) {
+      setProject(found);
     }
-    if (unconfirmedAssumptions > 0) {
-      score = Math.max(10, score - (unconfirmedAssumptions * 4));
+  };
+
+  const deleteProject = (projectId: string) => {
+    setHistory((prev) => prev.filter((p) => p.id !== projectId));
+    if (project.id === projectId) {
+      const remaining = history.filter((p) => p.id !== projectId);
+      if (remaining.length > 0) {
+        setProject(remaining[0]);
+      } else {
+        setProject(FLAGSHIP_PROJECTS[0]);
+      }
     }
-
-    return {
-      buildReadinessScore: Math.min(100, Math.max(0, score)),
-      requirementCoverage,
-      architectureConfidence,
-      securityReadiness,
-      uxCompleteness,
-      openQuestionsCount: totalQuestions - answeredQuestions,
-      criticalBlockersCount: criticalBlockers,
-      unconfirmedAssumptionsCount: unconfirmedAssumptions,
-      totalDependenciesCount: reqs.reduce((acc, r) => acc + (r.dependencies.length + r.downstreamImpacts.length), 0) + 24
-    };
   };
 
-  const stats = calculateStats();
-
-  const switchProject = (projectId: string) => {
-    if (projectId === 'proj_healthtech_telemedicine') {
-      setProject(initialHealthTechProject);
-    } else {
-      setProject(initialLogisticsProject);
-    }
-    setActiveTab('dashboard');
+  const createNewDraft = () => {
+    const draft = synthesizeProjectFromIntent('', 'New Untitled Intent');
+    setProject(draft);
+    setActiveCategory('intake_intent');
+    setActiveLayer('idea_intake');
   };
 
-  const answerQuestion = (questionId: string, answer: string) => {
-    setProject(prev => ({
-      ...prev,
-      questions: prev.questions.map(q =>
-        q.id === questionId ? { ...q, selectedOption: answer, status: 'answered' } : q
-      ),
-      lastUpdated: new Date().toISOString()
-    }));
-  };
+  const updateAssumptionStatus = (id: string, newStatus: AssumptionStatus) => {
+    setProject((prev) => {
+      const updated = prev.assumptions.map((a) => {
+        if (a.id === id) {
+          let conf = a.confidence;
+          if (newStatus === 'confirmed') conf = Math.max(90, conf);
+          if (newStatus === 'rejected') conf = 0;
+          if (newStatus === 'conflicting') conf = 30;
+          return {
+            ...a,
+            status: newStatus,
+            confidence: conf,
+            lastUpdated: new Date().toISOString().split('T')[0]
+          };
+        }
+        return a;
+      });
 
-  const updateRequirementStatus = (reqId: string, status: RequirementItem['status']) => {
-    setProject(prev => ({
-      ...prev,
-      requirements: prev.requirements.map(r =>
-        r.id === reqId ? { ...r, status } : r
-      ),
-      lastUpdated: new Date().toISOString()
-    }));
-  };
-
-  const confirmAssumption = (reqId: string) => {
-    setProject(prev => ({
-      ...prev,
-      requirements: prev.requirements.map(r =>
-        r.id === reqId ? { ...r, classification: 'CONFIRMED', status: 'Confirmed', confidenceScore: 95 } : r
-      ),
-      lastUpdated: new Date().toISOString()
-    }));
-  };
-
-  const resolveRedFlag = (flagId: string) => {
-    setProject(prev => ({
-      ...prev,
-      redFlags: prev.redFlags.map(f =>
-        f.id === flagId ? { ...f, resolved: true } : f
-      ),
-      lastUpdated: new Date().toISOString()
-    }));
-  };
-
-  const freezeSpecification = (versionLabel: string, summary: string) => {
-    setProject(prev => {
-      const newVersionHistory = [
-        {
-          version: versionLabel,
-          timestamp: new Date().toISOString(),
-          author: 'Lead Architect & Human Founder',
-          summary: summary || 'Locked and approved specification for autonomous build.',
-          changesCount: {
-            requirements: prev.requirements.length,
-            database: prev.databaseEntities.length,
-            apis: prev.apiEndpoints.length,
-            screens: prev.screens.length
-          },
-          locked: true
-        },
-        ...prev.versions
-      ];
+      // Recalculate readiness
+      const confirmedCount = updated.filter((a) => a.status === 'confirmed').length;
+      const total = updated.length || 1;
+      const confidenceAvg = Math.round(updated.reduce((sum, a) => sum + a.confidence, 0) / total);
 
       return {
         ...prev,
-        version: versionLabel,
-        isLocked: true,
-        versions: newVersionHistory,
-        lastUpdated: new Date().toISOString()
+        assumptions: updated,
+        readiness: {
+          ...prev.readiness,
+          dimensions: {
+            ...prev.readiness.dimensions,
+            requirementCompleteness: Math.min(100, Math.round((confirmedCount / total) * 100))
+          }
+        },
+        updatedAt: new Date().toISOString()
       };
     });
   };
 
-  const runVerificationScan = (codeSnippet: string, fileName: string) => {
-    const result = runSpecificationVerificationScan(codeSnippet, fileName, project);
-    setProject(prev => ({
-      ...prev,
-      verificationAudits: [result, ...prev.verificationAudits]
-    }));
-    return result;
-  };
-
-  const executeAskAICommand = (promptText: string) => {
-    const lower = promptText.toLowerCase();
-
-    // Smart Intent Conversion
-    if (lower.includes('member') || lower.includes('invite') || lower.includes('employee') || lower.includes('team')) {
-      const newReq: RequirementItem = {
-        id: `req_org_members_${Date.now()}`,
-        code: 'AUTHZ-008',
-        category: 'Authorization',
-        title: 'Team Invitations & Member Delegation System',
-        description: 'Allow organization administrators to invite colleagues via email with custom RBAC role assignments.',
-        classification: 'CONFIRMED',
-        confidenceScore: 92,
-        source: 'User',
-        status: 'Confirmed',
-        technicalSpec: 'Add organization_invitations table with 7-day HMAC expiry token. Implement POST /api/v1/organizations/:id/invites endpoint.',
-        dependencies: ['AUTH-001', 'Organization'],
-        downstreamImpacts: ['Organization View', 'User Management API', 'Email Notifications']
-      };
-
-      setProject(prev => ({
-        ...prev,
-        requirements: [newReq, ...prev.requirements],
-        aiMemory: [
-          {
-            id: `mem_user_${Date.now()}`,
-            tier: 'Requirement Memory',
-            key: 'Team Member Invitations Added',
-            content: `User instructed: "${promptText}". Generated AUTHZ-008 Requirement with DB schema update.`,
-            timestamp: new Date().toISOString(),
-            immutable: false
-          },
-          ...prev.aiMemory
-        ]
-      }));
-
-      return {
-        reply: `I have compiled your instruction into structured project state:
-1. Created new Requirement **[AUTHZ-008] Team Invitations & Member Delegation**.
-2. Linked downstream blast radius to Email Service, User DB, and API contracts.
-3. Appended decision context into Requirement Memory tier.`,
-        actionApplied: 'Requirement AUTHZ-008 Created'
-      };
-    }
-
-    if (lower.includes('lock') || lower.includes('freeze')) {
-      freezeSpecification('v1.1-FROZEN', 'Manual specification freeze triggered via conversational intent.');
-      return {
-        reply: 'Specification has been locked into immutable Version v1.1-FROZEN with state change audit trail.',
-        actionApplied: 'Specification Locked'
-      };
-    }
-
-    return {
-      reply: `I have analyzed: "${promptText}". 
-Based on the Level 7 Engineering rules, this maps to your current Architecture and Data Model. You can refine this directly in the Requirements or Database studio.`,
-      actionApplied: 'Analyzed & Context Updated'
+  const addAssumption = (statement: string, category: string, status: AssumptionStatus, confidence: number) => {
+    const newAsm: AssumptionItem = {
+      id: `asm_${Date.now()}`,
+      statement,
+      category,
+      status,
+      confidence,
+      source: 'User Prompt',
+      impact: 'High',
+      rationale: 'User manually specified assumption.',
+      dependencies: [],
+      lastUpdated: new Date().toISOString().split('T')[0]
     };
+    setProject((prev) => ({
+      ...prev,
+      assumptions: [newAsm, ...prev.assumptions],
+      updatedAt: new Date().toISOString()
+    }));
   };
 
-  const resetProjectToDefault = () => {
-    setProject(initialLogisticsProject);
-    setActiveTab('dashboard');
+  const deleteAssumption = (id: string) => {
+    setProject((prev) => ({
+      ...prev,
+      assumptions: prev.assumptions.filter((a) => a.id !== id),
+      updatedAt: new Date().toISOString()
+    }));
+  };
+
+  const updateRequirementPriority = (id: string, priority: RequirementItem['priority']) => {
+    setProject((prev) => ({
+      ...prev,
+      requirements: prev.requirements.map((r) => (r.id === id ? { ...r, priority } : r)),
+      updatedAt: new Date().toISOString()
+    }));
+  };
+
+  const addRequirement = (title: string, description: string, domain: string, priority: RequirementItem['priority']) => {
+    const newReq: RequirementItem = {
+      id: `req_${Date.now()}`,
+      title,
+      description,
+      domain,
+      confidenceScore: 90,
+      source: 'Human Intent',
+      status: 'Validated',
+      priority,
+      dependencies: [],
+      impactedLayers: ['workflow_engineering', 'architecture_engine'],
+      validationState: 'Verified'
+    };
+    setProject((prev) => ({
+      ...prev,
+      requirements: [newReq, ...prev.requirements],
+      updatedAt: new Date().toISOString()
+    }));
+  };
+
+  const answerQuestion = (questionId: string, optionId: string, customText?: string) => {
+    setProject((prev) => {
+      const updatedQuestions = prev.discoveryQuestions.map((q) => {
+        if (q.id === questionId) {
+          return {
+            ...q,
+            selectedOptionId: optionId,
+            customAnswer: customText,
+            isAnswered: true
+          };
+        }
+        return q;
+      });
+
+      return {
+        ...prev,
+        discoveryQuestions: updatedQuestions,
+        updatedAt: new Date().toISOString()
+      };
+    });
+  };
+
+  const toggleDomain = (domainId: string) => {
+    setProject((prev) => ({
+      ...prev,
+      domains: prev.domains.map((d) => (d.id === domainId ? { ...d, isActive: !d.isActive } : d)),
+      updatedAt: new Date().toISOString()
+    }));
+  };
+
+  const toggleSpecFreeze = (signOffParty: string) => {
+    setProject((prev) => {
+      const nextFrozen = !prev.isSpecFrozen;
+      const hash = nextFrozen
+        ? `sha256:${Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`
+        : 'unfrozen_specification_draft';
+
+      return {
+        ...prev,
+        isSpecFrozen: nextFrozen,
+        freezeRecord: {
+          isFrozen: nextFrozen,
+          hash,
+          signOffParty: nextFrozen ? signOffParty || 'Principal Lead & Architect' : 'Pending',
+          lockedAt: nextFrozen ? new Date().toISOString() : '',
+          verificationSignature: nextFrozen ? `ED25519_SIG_${Math.random().toString(36).substring(2)}` : ''
+        },
+        updatedAt: new Date().toISOString()
+      };
+    });
+  };
+
+  const createSpecVersion = (changeSummary: string, author: string) => {
+    setProject((prev) => {
+      const currentParts = prev.currentVersion.replace('v', '').split('.');
+      const nextMajor = parseInt(currentParts[0] || '1', 10);
+      const nextMinor = parseInt(currentParts[1] || '0', 10) + 1;
+      const newVer = `v${nextMajor}.${nextMinor}.0`;
+
+      const newRelease = {
+        version: newVer,
+        releaseDate: new Date().toISOString().split('T')[0],
+        author: author || 'Lead Architect',
+        commitHash: Math.random().toString(16).substring(2, 9),
+        changeSummary,
+        impactedLayers: ['build_contract', 'spec_freeze', 'architecture_engine'],
+        isFrozen: true,
+        signedOffBy: author || 'Lead Architect',
+        frozenTimestamp: new Date().toISOString()
+      };
+
+      return {
+        ...prev,
+        currentVersion: newVer,
+        versions: [newRelease, ...prev.versions],
+        updatedAt: new Date().toISOString()
+      };
+    });
+  };
+
+  const resolveBlocker = (blockerId: string) => {
+    setProject((prev) => ({
+      ...prev,
+      blockers: prev.blockers.map((b) => (b.id === blockerId ? { ...b, resolved: true } : b)),
+      readiness: {
+        ...prev.readiness,
+        unresolvedBlockerCount: Math.max(0, prev.readiness.unresolvedBlockerCount - 1),
+        isBuildReady: prev.readiness.unresolvedBlockerCount - 1 <= 0
+      },
+      updatedAt: new Date().toISOString()
+    }));
+  };
+
+  const resolveDrift = (driftId: string) => {
+    setProject((prev) => ({
+      ...prev,
+      driftAudit: prev.driftAudit.map((d) => (d.id === driftId ? { ...d, status: 'Resolved' } : d)),
+      updatedAt: new Date().toISOString()
+    }));
+  };
+
+  const simulateDriftScan = () => {
+    setIsProcessing(true);
+    setTimeout(() => {
+      const newDrift = {
+        id: `drift_${Date.now()}`,
+        fileOrEndpoint: 'src/api/records.ts:L89',
+        driftType: 'Security Deviation' as const,
+        severity: 'Critical' as const,
+        expectedSpec: 'JWT Bearer token verification with RLS tenant context injection.',
+        actualImplementation: 'Direct database query without current_setting(\'app.tenant_id\') execution.',
+        correctiveAction: 'Inject TenantContextMiddleware before database query execution.',
+        status: 'Open Drift' as const
+      };
+      setProject((prev) => ({
+        ...prev,
+        driftAudit: [newDrift, ...prev.driftAudit],
+        updatedAt: new Date().toISOString()
+      }));
+      setIsProcessing(false);
+    }, 600);
   };
 
   return (
     <ProjectContext.Provider
       value={{
         project,
-        activeTab,
-        activeMode,
-        stats,
-        setActiveTab,
-        setActiveMode,
-        switchProject,
+        history,
+        activeCategory,
+        activeLayer,
+        isProcessing,
+        searchQuery,
+        settings,
+        activeModal,
+        setActiveCategory,
+        setActiveLayer,
+        setSearchQuery,
+        setActiveModal,
+        updateSettings,
+        synthesizeNewProject,
+        loadProject,
+        deleteProject,
+        createNewDraft,
+        updateAssumptionStatus,
+        addAssumption,
+        deleteAssumption,
+        updateRequirementPriority,
+        addRequirement,
         answerQuestion,
-        updateRequirementStatus,
-        confirmAssumption,
-        resolveRedFlag,
-        freezeSpecification,
-        runVerificationScan,
-        executeAskAICommand,
-        resetProjectToDefault
+        toggleDomain,
+        toggleSpecFreeze,
+        createSpecVersion,
+        resolveBlocker,
+        resolveDrift,
+        simulateDriftScan
       }}
     >
       {children}
@@ -289,9 +437,7 @@ Based on the Level 7 Engineering rules, this maps to your current Architecture a
 };
 
 export const useProject = () => {
-  const context = useContext(ProjectContext);
-  if (!context) {
-    throw new Error('useProject must be used within a ProjectProvider');
-  }
-  return context;
+  const ctx = useContext(ProjectContext);
+  if (!ctx) throw new Error('useProject must be used within ProjectProvider');
+  return ctx;
 };

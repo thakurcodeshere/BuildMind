@@ -1,61 +1,76 @@
-# IntentForge — Level 7 Software Intent Compiler
+# BuildMind (IntentOS) — AI-Powered Software Intent Engineering Platform
 
-> **“Don't ask AI to build your idea. First teach AI exactly what your idea is.”**
->
-> *AI Requirements Engineering + Software Architecture layer between human intent and AI coding agents.*
+> **Transform raw software ideas into complete, structured, validated, developer-ready software specifications and single-source-of-truth build contracts before writing a line of code.**
 
----
-
-## 🌟 Overview
-
-**IntentForge** is an open-source Software Intent Compiler and Requirements Engineering platform built on the **Level 7 Developer-Curated Engineered Loop**.
-
-Before any AI coding agent writes a single line of code, IntentForge transforms raw, ambiguous human ideas into a **complete, structured, dependency-aware, and verified Software Specification / Build Contract**.
-
-```text
-Human Thought → Structured Intent → Requirements Graph → Software Model → Architecture → Build Contract → Code → Verification
-```
+![BuildMind](https://img.shields.io/badge/BuildMind-IntentOS%20v1.0-06b6d4?style=for-the-badge)
+![License](https://img.shields.io/badge/license-MIT-emerald?style=for-the-badge)
+![React](https://img.shields.io/badge/React-18%20%2F%2019-61dafb?style=for-the-badge&logo=react)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6?style=for-the-badge&logo=typescript)
+![Vite](https://img.shields.io/badge/Vite-6.4-646cff?style=for-the-badge&logo=vite)
 
 ---
 
-## ⚡ The 52-Stage Pipeline
+## 🚀 Overview
 
-1. **Multi-Modal Idea Capture (Stages 01–02)**: Natural language intake decomposing concepts into structured **IDEA DNA** (Problems, Personas, Workflows, Business Models, Constraints, Risks).
-2. **20 Engineering Domain Decomposer (Stage 03)**: Dynamic generation across Product, Users, Auth, Authz, UI/UX, Motion, Frontend, Backend, Database, Storage, Payments, Communication, AI/GPU, Security, Observability, Infra, DevOps, Testing, and Compliance.
-3. **Adaptive 100-Question Principle & "Why?" Engine (Stages 04, 08, 09, 48)**: Complexity-weighted adaptive questioning translating technical decisions into plain English with full trade-off explainability.
-4. **Assumption Firewall & Unknown Detection (Stages 10–12)**: Mandatory `CONFIRMED`, `INFERRED`, `ASSUMED`, `UNKNOWN`, `CONFLICT` classifications with 0–100% confidence scores and source provenance.
-5. **Role, Actor & Permission Engine (Stage 13)**: Interactive RBAC/ABAC permission matrix.
-6. **Workflow & Feature Contracts (Stages 14–15)**: Step-by-step lifecycle flow with preconditions, validations, state changes, DB events, and audit logs.
-7. **Interactive Dependency Graph & Blast Radius Simulator (Stage 16)**: Real-time calculation of downstream cascading impacts when requirements change.
-8. **Database Blueprint & SQL Studio (Stage 18)**: Relational schema models with spatial PostGIS types, soft-deletion policies, and one-click PostgreSQL DDL generator.
-9. **API Contract Studio (Stage 19)**: REST / OpenAPI 3.1 endpoint specifications with rate limits and error matrices.
-10. **UI/UX & Purposeful Motion Engine (Stages 20–22)**: 6-State UI matrix (`Loading`, `Empty`, `Success`, `Error`, `Offline`, `Denied`) with responsive breakpoint models and state-communicating micro-animations.
-11. **Tri-Path Edge-Case Engine (Stage 23)**: Mandatory **Happy Path + Failure Path + Recovery Path** contracts.
-12. **Operating Cost Estimator & Scalability Engine (Stages 27–28)**: Multi-tier cost modeling from 1,000 to 1,000,000 users.
-13. **Build Readiness Score & Red Flag Engine (Stages 30–31)**: Composite 0–100 readiness audit blocking autonomous AI build until all blockers are resolved.
-14. **Specification Freeze & Build Contract Exporter (Stages 32–34)**: Immutable version locks (`v1.0`, `v1.1`) and multi-format exports (Markdown PRD/TRD, PostgreSQL SQL, JSON, YAML, AI Agent Prompt Packs).
-15. **Specification → Code Verification Loop (Stage 35)**: Live scanner auditing code against specification rules (detecting tenant leaks, missing idempotency keys, unhandled errors, and hardcoded secrets).
-16. **7-Tier AI Memory Architecture & Knowledge Graph (Stages 37–38)**: Persistent memory tiers for Product, Decisions, Requirements, Constraints, Architecture, Preferences, and Changes.
+**BuildMind** is a Software Intent Engineering Platform that bridges the gap between human conceptual intent and autonomous AI/human software execution.
+
+### The Core Equation
+$$\text{Human Intent} \longrightarrow \text{Structured Requirements} \longrightarrow \text{Engineering Model} \longrightarrow \text{Build Contract} \longrightarrow \text{Software} \longrightarrow \text{Verification}$$
+
+---
+
+## 💎 The 31 Software Intent Engineering Layers
+
+1. **Idea Intake Layer** — Multimodal natural language, speech memo transcription, document RFC ingestion.
+2. **AI Intent Understanding Engine** — Deconstructs problem statements, core goals, primary actors, invariants, unknowns, and ambiguities.
+3. **Dynamic Domain Matrix** — Scalable matrix of 40+ engineering domains (Auth, RBAC, DB, API, Motion, Cloud, Security, DevOps, Billing) with dynamic complexity scoring.
+4. **Adaptive Fill-in-the-Blank System** — Dynamic discovery questions weighted by $\text{Complexity} \times \text{Risk} \times \text{Dependency} \times \text{Importance}$.
+5. **Assumption Firewall** — Strict 7-column Triage Kanban (*Confirmed, Inferred, Assumed, Unknown, Conflicted, Rejected, Pending*).
+6. **Requirement Confidence System** — Full lineage traceability with confidence metrics (0–100%) and P0–P3 prioritization.
+7. **Role & Permission Engine** — RBAC/ABAC matrices, tenant isolation boundaries, resource permissions, and rate limits.
+8. **Workflow Engineering Engine** — Visual and structured 13-field workflow node modeler.
+9. **Feature Contract Engine** — Formal implementation-independent contracts with preconditions, invariants, and acceptance criteria.
+10. **Architecture Engineering Engine** — System, Presentation, API Gateway, Service, Persistence, and Ephemeral Worker topologies.
+11. **Data Engineering Layer** — Relational schema modeler, ER entities, indexes, retention policies, and CDC audit tables.
+12. **API Engineering Layer** — OpenAPI 3.1 endpoint contracts, request/response JSON schemas, and idempotency guarantees.
+13. **UI/UX Engineering Layer** — Screen trees, user journeys, responsive breakpoints, and complete 4-state lifecycle (*Empty, Loading, Error, Success*).
+14. **Motion & Interaction Layer** — Micro-interaction tokens, easing curves, GPU frame budgets, and reduced-motion accessibility alternatives.
+15. **Security Engineering Layer** — Continuous STRIDE threat modeling (*Spoofing, Tampering, Repudiation, Info Disclosure, DoS, Elevation of Privilege*).
+16. **Privacy & Compliance Layer** — GDPR, CCPA, SOC 2, HIPAA data policies, cookie consent, retention windows, and automated deletion endpoints.
+17. **Integration Engineering Layer** — 3rd-party SaaS dependencies modeled via $\text{Purpose} \to \text{Data} \to \text{Auth} \to \text{Dependency} \to \text{Failure} \to \text{Security} \to \text{Cost}$.
+18. **Infrastructure & Compute Layer** — Cloud topology, containerized compute, GPU sizing, VPC subnets, Redis caching, and DR RPO/RTO.
+19. **Cost & Scalability Engine** — Interactive MVP vs. Scale Architecture cost simulator with a live 1x–10x scale slider.
+20. **Error & Edge-Case Engine** — Happy Path $\to$ Failure Path $\to$ Recovery Path matrix with actionable code directives.
+21. **Testing Engineering Layer** — Derived test matrix (*Unit, Integration, API Contract, E2E, Security Pen-test, Performance*).
+22. **Dependency Graph** — Interactive SVG/Canvas node visualizer linking Requirements $\leftrightarrow$ Features $\leftrightarrow$ Screens $\leftrightarrow$ APIs $\leftrightarrow$ DB $\leftrightarrow$ Infra.
+23. **Cross-Domain Validation Engine** — Continuous 8-axis contradiction detector preventing architectural misalignment.
+24. **Build Readiness Engine** — Visual 9-vector radar chart and readiness scorecard with mathematical gating criteria.
+25. **Risk & Blocker Engine** — Pre-implementation hard gates preventing unguided/blind AI coding.
+26. **Specification Versioning** — Semver release management, immutable commit history, and downstream impact diffing.
+27. **Specification Freeze (SSOT)** — Cryptographic SHA-256 hash and Ed25519 signature lock establishing the Single Source of Truth.
+28. **Build Contract Generator** — Multi-format export: Developer Markdown, OpenAPI 3.1 JSON, Prisma Schema, JSON Schema, Mermaid diagram.
+29. **AI Development Handoff** — Context and directive packs for Claude, Cursor (`.cursorrules`), and Google Antigravity.
+30. **Implementation Verification Engine** — Live code & schema drift analyzer comparing actual code diffs to frozen build contracts.
+31. **Continuous Specification-to-Code Loop** — 16-stage continuous intent orchestration pipeline.
 
 ---
 
 ## 🛠️ Tech Stack
 
-* **Frontend**: React 18, TypeScript, Vite, Lucide React
-* **Styling**: Tailored CSS Design System (Slate Titanium & HSL Tokens)
-* **Visualizations**: Interactive SVG/Canvas Graph & Blast Radius Visualizers
-* **Deployment**: Vercel
+- **Frontend**: React 18/19, TypeScript, Tailwind CSS, Lucide Icons
+- **Build Tool**: Vite 6
+- **Architecture**: Modular Single Page Application with LocalStorage Persistence & Zero-Config Offline Heuristic Engine
 
 ---
 
-## 💻 Local Development
+## 📦 Getting Started Locally
 
 ```bash
 # Clone the repository
-git clone https://github.com/thakurcodeshere/IntentForge.git
+git clone https://github.com/thakurcodeshere/BuildMind.git
 
-# Navigate into directory
-cd IntentForge
+# Navigate into project directory
+cd BuildMind
 
 # Install dependencies
 npm install
@@ -63,7 +78,7 @@ npm install
 # Start local development server
 npm run dev
 
-# Build production bundle
+# Build for production
 npm run build
 ```
 
@@ -71,4 +86,4 @@ npm run build
 
 ## 📄 License
 
-MIT © 2026 IntentForge Team
+MIT © [BuildMind / thakurcodeshere](https://github.com/thakurcodeshere)
